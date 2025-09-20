@@ -2,7 +2,7 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
--- Purchase Glitcher Script (from artifact_id="b97750b7-40f4-4ab6-b8e8-3173264ee0ae")
+-- Purchase Glitcher Script
 local purchaseGlitcherScript = [[
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -364,7 +364,7 @@ end)
 print("Forsaken Purchase Glitcher GUI created with Skins button as separate option")
 ]]
 
--- Equip Glitcher Script (from artifact_id="091797e6-c416-49cd-bc81-156b5182a7ed")
+-- Equip Glitcher Script
 local equipGlitcherScript = [[
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -756,9 +756,15 @@ end)
 print("Forsaken Equip Glitcher GUI updated with fixed skin equipping")
 ]]
 
--- Create ScreenGui for Combined GUI
+-- Money Glitcher Script (Negative Money Enabled)
+local moneyGlitcherScript = [[
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+
+-- Create ScreenGui
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "EquipAndPurchaseGlitcherGui"
+screenGui.Name = "MoneyGlitcherGui"
 screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui", 5)
 screenGui.ResetOnSpawn = false
 screenGui.IgnoreGuiInset = true
@@ -827,16 +833,288 @@ local titleLabel = Instance.new("TextLabel")
 titleLabel.Size = UDim2.new(1, 0, 0, 30)
 titleLabel.Position = UDim2.new(0, 0, 0, 5)
 titleLabel.BackgroundTransparency = 1
-titleLabel.Text = "Forsaken Equip And Purchase Glitcher"
+titleLabel.Text = "Forsaken Money Glitcher"
 titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 titleLabel.TextScaled = true
 titleLabel.Font = Enum.Font.SourceSansBold
 titleLabel.Parent = frame
 
--- Create Purchase Glitcher Button (Left, Green)
+-- Create Current Money Label
+local currentLabel = Instance.new("TextLabel")
+currentLabel.Size = UDim2.new(0.8, 0, 0, 30)
+currentLabel.Position = UDim2.new(0.1, 0, 0, 45)
+currentLabel.BackgroundTransparency = 1
+currentLabel.Text = "Current: Loading..."
+currentLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+currentLabel.TextScaled = true
+currentLabel.Font = Enum.Font.SourceSans
+currentLabel.Parent = frame
+
+-- Create Input TextBox
+local inputBox = Instance.new("TextBox")
+inputBox.Size = UDim2.new(0.8, 0, 0, 40)
+inputBox.Position = UDim2.new(0.1, 0, 0, 85)
+inputBox.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+inputBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+inputBox.PlaceholderText = "Enter amount or 'math.huge'"
+inputBox.Text = ""
+inputBox.TextScaled = true
+inputBox.Font = Enum.Font.SourceSans
+inputBox.Parent = frame
+
+-- Add rounded corners to Input Box
+local inputCorner = Instance.new("UICorner")
+inputCorner.CornerRadius = UDim.new(0, 8)
+inputCorner.Parent = inputBox
+
+-- Create Add Button (Bottom Left, Blue)
+local addButton = Instance.new("TextButton")
+addButton.Size = UDim2.new(0.25, 0, 0, 40)
+addButton.Position = UDim2.new(0.1, 0, 1, -50)
+addButton.BackgroundColor3 = Color3.fromRGB(0, 123, 255)
+addButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+addButton.Text = "Add"
+addButton.TextScaled = true
+addButton.Font = Enum.Font.SourceSansBold
+addButton.Parent = frame
+
+-- Add rounded corners to Add Button
+local addButtonCorner = Instance.new("UICorner")
+addButtonCorner.CornerRadius = UDim.new(0, 8)
+addButtonCorner.Parent = addButton
+
+-- Create Set Button (Bottom Middle, Green)
+local setButton = Instance.new("TextButton")
+setButton.Size = UDim2.new(0.25, 0, 0, 40)
+setButton.Position = UDim2.new(0.375, 0, 1, -50)
+setButton.BackgroundColor3 = Color3.fromRGB(40, 167, 69)
+setButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+setButton.Text = "Set"
+setButton.TextScaled = true
+setButton.Font = Enum.Font.SourceSansBold
+setButton.Parent = frame
+
+-- Add rounded corners to Set Button
+local setButtonCorner = Instance.new("UICorner")
+setButtonCorner.CornerRadius = UDim.new(0, 8)
+setButtonCorner.Parent = setButton
+
+-- Create Subtract Button (Bottom Right, Red)
+local subtractButton = Instance.new("TextButton")
+subtractButton.Size = UDim2.new(0.25, 0, 0, 40)
+subtractButton.Position = UDim2.new(0.65, 0, 1, -50)
+subtractButton.BackgroundColor3 = Color3.fromRGB(220, 53, 69)
+subtractButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+subtractButton.Text = "Subtract"
+subtractButton.TextScaled = true
+subtractButton.Font = Enum.Font.SourceSansBold
+subtractButton.Parent = frame
+
+-- Add rounded corners to Subtract Button
+local subtractButtonCorner = Instance.new("UICorner")
+subtractButtonCorner.CornerRadius = UDim.new(0, 8)
+subtractButtonCorner.Parent = subtractButton
+
+-- Create Feedback Label (Below Buttons)
+local feedbackLabel = Instance.new("TextLabel")
+feedbackLabel.Size = UDim2.new(0.8, 0, 0, 30)
+feedbackLabel.Position = UDim2.new(0.1, 0, 1, -80)
+feedbackLabel.BackgroundTransparency = 1
+feedbackLabel.Text = ""
+feedbackLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+feedbackLabel.TextScaled = true
+feedbackLabel.Font = Enum.Font.SourceSans
+feedbackLabel.Parent = frame
+
+-- Close button
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -35, 0, 5)
+closeButton.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.Text = "X"
+closeButton.TextScaled = true
+closeButton.Font = Enum.Font.SourceSansBold
+closeButton.Parent = frame
+
+-- Add rounded corners to Close Button
+local closeButtonCorner = Instance.new("UICorner")
+closeButtonCorner.CornerRadius = UDim.new(0, 8)
+closeButtonCorner.Parent = closeButton
+
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
+
+-- Function to find and update money
+local function updateMoney()
+    local success, money = pcall(function()
+        return LocalPlayer:WaitForChild("PlayerData"):WaitForChild("Stats"):WaitForChild("Currency"):WaitForChild("Money")
+    end)
+    if success and money then
+        currentLabel.Text = "Current: $" .. tostring(money.Value)
+        return money
+    else
+        feedbackLabel.Text = "Error: Money not found"
+        feedbackLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+        return nil
+    end
+end
+
+local money = updateMoney()
+
+-- Function to parse input value
+local function parseValue(input)
+    input = input:lower():gsub(" ", "")
+    if input == "math.huge" or input == "infinite" or input == "inf" then
+        return math.huge
+    else
+        local num = tonumber(input)
+        return num or nil
+    end
+end
+
+-- Add Button Function
+addButton.MouseButton1Click:Connect(function()
+    if not money then return end
+    local inputValue = parseValue(inputBox.Text)
+    if inputValue then
+        money.Value = money.Value + inputValue
+        updateMoney()
+        feedbackLabel.Text = "Added successfully"
+        feedbackLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+        inputBox.Text = ""
+    else
+        feedbackLabel.Text = "Invalid input"
+        feedbackLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+    end
+end)
+
+-- Set Button Function
+setButton.MouseButton1Click:Connect(function()
+    if not money then return end
+    local inputValue = parseValue(inputBox.Text)
+    if inputValue then
+        money.Value = inputValue
+        updateMoney()
+        feedbackLabel.Text = "Set successfully"
+        feedbackLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+        inputBox.Text = ""
+    else
+        feedbackLabel.Text = "Invalid input"
+        feedbackLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+    end
+end)
+
+-- Subtract Button Function (NEGATIVE MONEY ENABLED)
+subtractButton.MouseButton1Click:Connect(function()
+    if not money then return end
+    local inputValue = parseValue(inputBox.Text)
+    if inputValue then
+        money.Value = money.Value - inputValue  -- No math.max() - allows negative!
+        updateMoney()
+        feedbackLabel.Text = "Subtracted successfully"
+        feedbackLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+        inputBox.Text = ""
+    else
+        feedbackLabel.Text = "Invalid input"
+        feedbackLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+    end
+end)
+
+-- Periodic update
+spawn(function()
+    while wait(1) do
+        if money then
+            updateMoney()
+        end
+    end
+end)
+
+print("Forsaken Money Glitcher GUI loaded (Negative Money Enabled)")
+]]
+
+-- Create ScreenGui for Combined GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "EquipAndPurchaseGlitcherGui"
+screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui", 5)
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
+
+-- Create Outer Frame (for white outline)
+local outerFrame = Instance.new("Frame")
+outerFrame.Size = UDim2.new(0, 310, 0, 350)
+outerFrame.Position = UDim2.new(0.5, -155, 0.5, -175)
+outerFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+outerFrame.BorderSizePixel = 0
+outerFrame.Parent = screenGui
+
+-- Add rounded corners to Outer Frame
+local outerFrameCorner = Instance.new("UICorner")
+outerFrameCorner.CornerRadius = UDim.new(0, 12)
+outerFrameCorner.Parent = outerFrame
+
+-- Create Main Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 300, 0, 340)
+frame.Position = UDim2.new(0.5, -150, 0.5, -170)
+frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+frame.BorderSizePixel = 0
+frame.Parent = screenGui
+
+-- Add rounded corners to Main Frame
+local frameCorner = Instance.new("UICorner")
+frameCorner.CornerRadius = UDim.new(0, 10)
+frameCorner.Parent = frame
+
+-- Make Frame draggable
+local dragging, dragInput, dragStart, startPos
+local function updateInput(input)
+    local delta = input.Position - dragStart
+    frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    outerFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X - 5, startPos.Y.Scale, startPos.Y.Offset + delta.Y - 5)
+end
+
+frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+frame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input == dragInput then
+        updateInput(input)
+    end
+end)
+
+-- Create TextLabel (Title)
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, 0, 0, 30)
+titleLabel.Position = UDim2.new(0, 0, 0, 5)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "Forsaken Hacks"
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.TextScaled = true
+titleLabel.Font = Enum.Font.SourceSansBold
+titleLabel.Parent = frame
+
+-- Create Purchase Glitcher Button (Top Left, Green)
 local purchaseButton = Instance.new("TextButton")
-purchaseButton.Size = UDim2.new(0.4, 0, 0, 40)
-purchaseButton.Position = UDim2.new(0.1, 0, 0.5, -20)
+purchaseButton.Size = UDim2.new(0.3, 0, 0, 40)
+purchaseButton.Position = UDim2.new(0.05, 0, 0, 45)
 purchaseButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
 purchaseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 purchaseButton.Text = "Purchase Glitcher"
@@ -849,10 +1127,10 @@ local purchaseButtonCorner = Instance.new("UICorner")
 purchaseButtonCorner.CornerRadius = UDim.new(0, 8)
 purchaseButtonCorner.Parent = purchaseButton
 
--- Create Equip Glitcher Button (Right, Purple)
+-- Create Equip Glitcher Button (Top Middle, Purple)
 local equipButton = Instance.new("TextButton")
-equipButton.Size = UDim2.new(0.4, 0, 0, 40)
-equipButton.Position = UDim2.new(0.5, 0, 0.5, -20)
+equipButton.Size = UDim2.new(0.3, 0, 0, 40)
+equipButton.Position = UDim2.new(0.35, 0, 0, 45)
 equipButton.BackgroundColor3 = Color3.fromRGB(128, 0, 128)
 equipButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 equipButton.Text = "Equip Glitcher"
@@ -864,6 +1142,22 @@ equipButton.Parent = frame
 local equipButtonCorner = Instance.new("UICorner")
 equipButtonCorner.CornerRadius = UDim.new(0, 8)
 equipButtonCorner.Parent = equipButton
+
+-- Create Money Glitcher Button (Top Right, Gold)
+local moneyButton = Instance.new("TextButton")
+moneyButton.Size = UDim2.new(0.3, 0, 0, 40)
+moneyButton.Position = UDim2.new(0.65, 0, 0, 45)
+moneyButton.BackgroundColor3 = Color3.fromRGB(255, 215, 0)
+moneyButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+moneyButton.Text = "Money Glitcher"
+moneyButton.TextScaled = true
+moneyButton.Font = Enum.Font.SourceSansBold
+moneyButton.Parent = frame
+
+-- Add rounded corners to Money Button
+local moneyButtonCorner = Instance.new("UICorner")
+moneyButtonCorner.CornerRadius = UDim.new(0, 8)
+moneyButtonCorner.Parent = moneyButton
 
 -- Create Minimize Button
 local minimizeButton = Instance.new("TextButton")
@@ -902,16 +1196,18 @@ local isMinimized = false
 local function toggleMinimize()
     isMinimized = not isMinimized
     if isMinimized then
-        frame.Size = UDim2.new(0, 300, 0, 50)
-        outerFrame.Size = UDim2.new(0, 310, 0, 60)
+        frame.Size = UDim2.new(0, 300, 0, 90)
+        outerFrame.Size = UDim2.new(0, 310, 0, 100)
         purchaseButton.Visible = false
         equipButton.Visible = false
+        moneyButton.Visible = false
         minimizeButton.Text = "+"
     else
-        frame.Size = UDim2.new(0, 300, 0, 300)
-        outerFrame.Size = UDim2.new(0, 310, 0, 310)
+        frame.Size = UDim2.new(0, 300, 0, 340)
+        outerFrame.Size = UDim2.new(0, 310, 0, 350)
         purchaseButton.Visible = true
         equipButton.Visible = true
+        moneyButton.Visible = true
         minimizeButton.Text = "-"
     end
 end
@@ -930,9 +1226,16 @@ equipButton.MouseButton1Click:Connect(function()
     loadstring(equipGlitcherScript)()
 end)
 
+-- Connect Money Button
+moneyButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+    loadstring(moneyGlitcherScript)()
+end)
+
 -- Connect Close Button
 closeButton.MouseButton1Click:Connect(function()
     screenGui:Destroy()
 end)
 
-print("Forsaken Equip And Purchase Glitcher GUI created with minimize functionality")
+print("Forsaken Hacks loaded with Money, Purchase, and Equip!")
+
