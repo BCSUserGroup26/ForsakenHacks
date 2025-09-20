@@ -1,0 +1,938 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+
+-- Purchase Glitcher Script (from artifact_id="b97750b7-40f4-4ab6-b8e8-3173264ee0ae")
+local purchaseGlitcherScript = [[
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+
+-- Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "CharacterAdderGui"
+screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui", 5)
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
+
+-- Create Outer Frame (for white outline)
+local outerFrame = Instance.new("Frame")
+outerFrame.Size = UDim2.new(0, 310, 0, 310)
+outerFrame.Position = UDim2.new(0.5, -155, 0.5, -155)
+outerFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+outerFrame.BorderSizePixel = 0
+outerFrame.Parent = screenGui
+
+-- Add rounded corners to Outer Frame
+local outerFrameCorner = Instance.new("UICorner")
+outerFrameCorner.CornerRadius = UDim.new(0, 12)
+outerFrameCorner.Parent = outerFrame
+
+-- Create Main Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 300, 0, 300)
+frame.Position = UDim2.new(0.5, -150, 0.5, -150)
+frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+frame.BorderSizePixel = 0
+frame.Parent = screenGui
+
+-- Add rounded corners to Main Frame
+local frameCorner = Instance.new("UICorner")
+frameCorner.CornerRadius = UDim.new(0, 10)
+frameCorner.Parent = frame
+
+-- Make Frame draggable
+local dragging, dragInput, dragStart, startPos
+local function updateInput(input)
+    local delta = input.Position - dragStart
+    frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    outerFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X - 5, startPos.Y.Scale, startPos.Y.Offset + delta.Y - 5)
+end
+
+frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+frame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input == dragInput then
+        updateInput(input)
+    end
+end)
+
+-- Create TextLabel (Title)
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, 0, 0, 30)
+titleLabel.Position = UDim2.new(0, 0, 0, 5)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "Forsaken Purchase Glitcher"
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.TextScaled = true
+titleLabel.Font = Enum.Font.SourceSansBold
+titleLabel.Parent = frame
+
+-- Create Selected Name Label (Middle-Bottom, above buttons)
+local selectedLabel = Instance.new("TextLabel")
+selectedLabel.Size = UDim2.new(0.8, 0, 0, 30)
+selectedLabel.Position = UDim2.new(0.1, 0, 1, -100)
+selectedLabel.BackgroundTransparency = 1
+selectedLabel.Text = "Selected: None"
+selectedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+selectedLabel.TextScaled = true
+selectedLabel.Font = Enum.Font.SourceSans
+selectedLabel.Parent = frame
+
+-- Create ScrollingFrame for list (Top and Middle)
+local scrollingFrame = Instance.new("ScrollingFrame")
+scrollingFrame.Size = UDim2.new(0.8, 0, 0, 150)
+scrollingFrame.Position = UDim2.new(0.1, 0, 0, 40)
+scrollingFrame.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+scrollingFrame.BorderSizePixel = 0
+scrollingFrame.ScrollBarThickness = 6
+scrollingFrame.Visible = false
+scrollingFrame.Parent = frame
+
+-- Add rounded corners to ScrollingFrame
+local scrollingCorner = Instance.new("UICorner")
+scrollingCorner.CornerRadius = UDim.new(0, 8)
+scrollingCorner.Parent = scrollingFrame
+
+-- Add UIListLayout to ScrollingFrame
+local listLayout = Instance.new("UIListLayout")
+listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+listLayout.Padding = UDim.new(0, 5)
+listLayout.Parent = scrollingFrame
+
+-- Create Skins Button (Bottom, left of Get, Yellow)
+local skinsButton = Instance.new("TextButton")
+skinsButton.Size = UDim2.new(0.2, 0, 0, 40)
+skinsButton.Position = UDim2.new(0.1, 0, 1, -50)
+skinsButton.BackgroundColor3 = Color3.fromRGB(255, 255, 0)
+skinsButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+skinsButton.Text = "Skins"
+skinsButton.TextScaled = true
+skinsButton.Font = Enum.Font.SourceSansBold
+skinsButton.Parent = frame
+
+-- Add rounded corners to Skins Button
+local skinsButtonCorner = Instance.new("UICorner")
+skinsButtonCorner.CornerRadius = UDim.new(0, 8)
+skinsButtonCorner.Parent = skinsButton
+
+-- Create Get Button (Bottom Middle, Purple)
+local getButton = Instance.new("TextButton")
+getButton.Size = UDim2.new(0.2, 0, 0, 40)
+getButton.Position = UDim2.new(0.325, 0, 1, -50)
+getButton.BackgroundColor3 = Color3.fromRGB(128, 0, 128)
+getButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+getButton.Text = "Get"
+getButton.TextScaled = true
+getButton.Font = Enum.Font.SourceSansBold
+getButton.Parent = frame
+
+-- Add rounded corners to Get Button
+local getButtonCorner = Instance.new("UICorner")
+getButtonCorner.CornerRadius = UDim.new(0, 8)
+getButtonCorner.Parent = getButton
+
+-- Create Survivor Button (Bottom, right of Get)
+local survivorButton = Instance.new("TextButton")
+survivorButton.Size = UDim2.new(0.2, 0, 0, 40)
+survivorButton.Position = UDim2.new(0.55, 0, 1, -50)
+survivorButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+survivorButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+survivorButton.Text = "Survivor"
+survivorButton.TextScaled = true
+survivorButton.Font = Enum.Font.SourceSansBold
+survivorButton.Parent = frame
+
+-- Add rounded corners to Survivor Button
+local survivorButtonCorner = Instance.new("UICorner")
+survivorButtonCorner.CornerRadius = UDim.new(0, 8)
+survivorButtonCorner.Parent = survivorButton
+
+-- Create Killer Button (Bottom Right)
+local killerButton = Instance.new("TextButton")
+killerButton.Size = UDim2.new(0.2, 0, 0, 40)
+killerButton.Position = UDim2.new(0.775, 0, 1, -50)
+killerButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+killerButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+killerButton.Text = "Killer"
+killerButton.TextScaled = true
+killerButton.Font = Enum.Font.SourceSansBold
+killerButton.Parent = frame
+
+-- Add rounded corners to Killer Button
+local killerButtonCorner = Instance.new("UICorner")
+killerButtonCorner.CornerRadius = UDim.new(0, 8)
+killerButtonCorner.Parent = killerButton
+
+-- Create Feedback Label (Below Buttons)
+local feedbackLabel = Instance.new("TextLabel")
+feedbackLabel.Size = UDim2.new(0.8, 0, 0, 30)
+feedbackLabel.Position = UDim2.new(0.1, 0, 1, -80)
+feedbackLabel.BackgroundTransparency = 1
+feedbackLabel.Text = ""
+feedbackLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+feedbackLabel.TextScaled = true
+feedbackLabel.Font = Enum.Font.SourceSans
+feedbackLabel.Parent = frame
+
+-- Variables for state
+local selectedCategory = nil
+local selectedName = nil
+local isSkinMode = false
+
+-- Function to populate list
+local function populateList(category)
+    for _, child in ipairs(scrollingFrame:GetChildren()) do
+        if child:IsA("TextButton") then
+            child:Destroy()
+        end
+    end
+
+    local assets = ReplicatedStorage:WaitForChild("Assets", 5)
+    local items = {}
+
+    if category == "Skins" then
+        local skinsFolder = assets:FindFirstChild("Skins")
+        if not skinsFolder then
+            feedbackLabel.Text = "Error: Skins folder not found"
+            feedbackLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+            return
+        end
+        local survivorSkins = skinsFolder:FindFirstChild("Survivors")
+        local killerSkins = skinsFolder:FindFirstChild("Killers")
+        if survivorSkins then
+            for _, item in ipairs(survivorSkins:GetChildren()) do
+                table.insert(items, {Name = "S:" .. item.Name, OriginalName = item.Name})
+            end
+        end
+        if killerSkins then
+            for _, item in ipairs(killerSkins:GetChildren()) do
+                table.insert(items, {Name = "K:" .. item.Name, OriginalName = item.Name})
+            end
+        end
+    else
+        local categoryFolder = assets:FindFirstChild(category)
+        if not categoryFolder then
+            feedbackLabel.Text = "Error: " .. category .. " folder not found"
+            feedbackLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+            return
+        end
+        for _, item in ipairs(categoryFolder:GetChildren()) do
+            table.insert(items, {Name = item.Name, OriginalName = item.Name})
+        end
+    end
+
+    for _, item in ipairs(items) do
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(1, 0, 0, 30)
+        button.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+        button.TextColor3 = Color3.fromRGB(255, 255, 255)
+        button.Text = item.Name
+        button.TextScaled = true
+        button.Font = Enum.Font.SourceSans
+        button.Parent = scrollingFrame
+
+        local buttonCorner = Instance.new("UICorner")
+        buttonCorner.CornerRadius = UDim.new(0, 5)
+        buttonCorner.Parent = button
+
+        button.MouseButton1Click:Connect(function()
+            selectedName = item.OriginalName
+            selectedLabel.Text = "Selected: " .. item.Name
+            scrollingFrame.Visible = false
+            feedbackLabel.Text = ""
+        end)
+    end
+
+    scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y)
+    scrollingFrame.Visible = true
+end
+
+-- Connect Skins Button
+skinsButton.MouseButton1Click:Connect(function()
+    selectedCategory = "Skins"
+    isSkinMode = true
+    populateList("Skins")
+end)
+
+-- Connect Survivor Button
+survivorButton.MouseButton1Click:Connect(function()
+    selectedCategory = "Survivors"
+    isSkinMode = false
+    populateList("Survivors")
+end)
+
+-- Connect Killer Button
+killerButton.MouseButton1Click:Connect(function()
+    selectedCategory = "Killers"
+    isSkinMode = false
+    populateList("Killers")
+end)
+
+-- Function to add IntValue
+local function addIntValue(category, characterName)
+    local success, result = pcall(function()
+        local playerData = LocalPlayer:WaitForChild("PlayerData", 5)
+        if not playerData then
+            error("PlayerData not found")
+        end
+
+        local purchased = playerData:WaitForChild("Purchased", 5)
+        if not purchased then
+            purchased = Instance.new("Folder")
+            purchased.Name = "Purchased"
+            purchased.Parent = playerData
+        end
+
+        local folderName = isSkinMode and "Skins" or category
+        local folder = purchased:FindFirstChild(folderName)
+        if not folder then
+            folder = Instance.new("Folder")
+            folder.Name = folderName
+            folder.Parent = purchased
+        end
+
+        if folder:FindFirstChild(characterName) then
+            error(characterName .. " already exists in " .. folderName)
+        end
+
+        local intValue = Instance.new("IntValue")
+        intValue.Name = characterName
+        intValue.Value = 0
+        intValue.Parent = folder
+
+        return "Added " .. characterName .. " to " .. folderName
+    end)
+
+    if success then
+        feedbackLabel.Text = result
+        feedbackLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+    else
+        feedbackLabel.Text = "Error: " .. tostring(result)
+        feedbackLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+    end
+end
+
+-- Connect Get Button
+getButton.MouseButton1Click:Connect(function()
+    if not selectedCategory or not selectedName then
+        feedbackLabel.Text = "Error: Select category and name first"
+        feedbackLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+        return
+    end
+    addIntValue(selectedCategory, selectedName)
+end)
+
+-- Close button
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -35, 0, 5)
+closeButton.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.Text = "X"
+closeButton.TextScaled = true
+closeButton.Font = Enum.Font.SourceSansBold
+closeButton.Parent = frame
+
+-- Add rounded corners to Close Button
+local closeButtonCorner = Instance.new("UICorner")
+closeButtonCorner.CornerRadius = UDim.new(0, 8)
+closeButtonCorner.Parent = closeButton
+
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
+
+print("Forsaken Purchase Glitcher GUI created with Skins button as separate option")
+]]
+
+-- Equip Glitcher Script (from artifact_id="091797e6-c416-49cd-bc81-156b5182a7ed")
+local equipGlitcherScript = [[
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+
+-- Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "EquipGlitcherGui"
+screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui", 5)
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
+
+-- Create Outer Frame (for white outline)
+local outerFrame = Instance.new("Frame")
+outerFrame.Size = UDim2.new(0, 310, 0, 310)
+outerFrame.Position = UDim2.new(0.5, -155, 0.5, -155)
+outerFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+outerFrame.BorderSizePixel = 0
+outerFrame.Parent = screenGui
+
+-- Add rounded corners to Outer Frame
+local outerFrameCorner = Instance.new("UICorner")
+outerFrameCorner.CornerRadius = UDim.new(0, 12)
+outerFrameCorner.Parent = outerFrame
+
+-- Create Main Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 300, 0, 300)
+frame.Position = UDim2.new(0.5, -150, 0.5, -150)
+frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+frame.BorderSizePixel = 0
+frame.Parent = screenGui
+
+-- Add rounded corners to Main Frame
+local frameCorner = Instance.new("UICorner")
+frameCorner.CornerRadius = UDim.new(0, 10)
+frameCorner.Parent = frame
+
+-- Make Frame draggable
+local dragging, dragInput, dragStart, startPos
+local function updateInput(input)
+    local delta = input.Position - dragStart
+    frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    outerFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X - 5, startPos.Y.Scale, startPos.Y.Offset + delta.Y - 5)
+end
+
+frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+frame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input == dragInput then
+        updateInput(input)
+    end
+end)
+
+-- Create TextLabel (Title)
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, 0, 0, 30)
+titleLabel.Position = UDim2.new(0, 0, 0, 5)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "Forsaken Equip Glitcher"
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.TextScaled = true
+titleLabel.Font = Enum.Font.SourceSansBold
+titleLabel.Parent = frame
+
+-- Create Selected Name Label (Middle-Bottom, above buttons)
+local selectedLabel = Instance.new("TextLabel")
+selectedLabel.Size = UDim2.new(0.8, 0, 0, 30)
+selectedLabel.Position = UDim2.new(0.1, 0, 1, -100)
+selectedLabel.BackgroundTransparency = 1
+selectedLabel.Text = "Selected: None"
+selectedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+selectedLabel.TextScaled = true
+selectedLabel.Font = Enum.Font.SourceSans
+selectedLabel.Parent = frame
+
+-- Create ScrollingFrame for list (Top and Middle)
+local scrollingFrame = Instance.new("ScrollingFrame")
+scrollingFrame.Size = UDim2.new(0.8, 0, 0, 150)
+scrollingFrame.Position = UDim2.new(0.1, 0, 0, 40)
+scrollingFrame.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+scrollingFrame.BorderSizePixel = 0
+scrollingFrame.ScrollBarThickness = 6
+scrollingFrame.Visible = false
+scrollingFrame.Parent = frame
+
+-- Add rounded corners to ScrollingFrame
+local scrollingCorner = Instance.new("UICorner")
+scrollingCorner.CornerRadius = UDim.new(0, 8)
+scrollingCorner.Parent = scrollingFrame
+
+-- Add UIListLayout to ScrollingFrame
+local listLayout = Instance.new("UIListLayout")
+listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+listLayout.Padding = UDim.new(0, 5)
+listLayout.Parent = scrollingFrame
+
+-- Create Skins Button (Bottom, left of Equip, Yellow)
+local skinsButton = Instance.new("TextButton")
+skinsButton.Size = UDim2.new(0.2, 0, 0, 40)
+skinsButton.Position = UDim2.new(0.1, 0, 1, -50)
+skinsButton.BackgroundColor3 = Color3.fromRGB(255, 255, 0)
+skinsButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+skinsButton.Text = "Skins"
+skinsButton.TextScaled = true
+skinsButton.Font = Enum.Font.SourceSansBold
+skinsButton.Parent = frame
+
+-- Add rounded corners to Skins Button
+local skinsButtonCorner = Instance.new("UICorner")
+skinsButtonCorner.CornerRadius = UDim.new(0, 8)
+skinsButtonCorner.Parent = skinsButton
+
+-- Create Equip Button (Bottom Middle, Purple)
+local equipButton = Instance.new("TextButton")
+equipButton.Size = UDim2.new(0.2, 0, 0, 40)
+equipButton.Position = UDim2.new(0.325, 0, 1, -50)
+equipButton.BackgroundColor3 = Color3.fromRGB(128, 0, 128)
+equipButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+equipButton.Text = "Equip"
+equipButton.TextScaled = true
+equipButton.Font = Enum.Font.SourceSansBold
+equipButton.Parent = frame
+
+-- Add rounded corners to Equip Button
+local equipButtonCorner = Instance.new("UICorner")
+equipButtonCorner.CornerRadius = UDim.new(0, 8)
+equipButtonCorner.Parent = equipButton
+
+-- Create Survivor Button (Bottom, right of Equip)
+local survivorButton = Instance.new("TextButton")
+survivorButton.Size = UDim2.new(0.2, 0, 0, 40)
+survivorButton.Position = UDim2.new(0.55, 0, 1, -50)
+survivorButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+survivorButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+survivorButton.Text = "Survivor"
+survivorButton.TextScaled = true
+survivorButton.Font = Enum.Font.SourceSansBold
+survivorButton.Parent = frame
+
+-- Add rounded corners to Survivor Button
+local survivorButtonCorner = Instance.new("UICorner")
+survivorButtonCorner.CornerRadius = UDim.new(0, 8)
+survivorButtonCorner.Parent = survivorButton
+
+-- Create Killer Button (Bottom Right)
+local killerButton = Instance.new("TextButton")
+killerButton.Size = UDim2.new(0.2, 0, 0, 40)
+killerButton.Position = UDim2.new(0.775, 0, 1, -50)
+killerButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+killerButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+killerButton.Text = "Killer"
+killerButton.TextScaled = true
+killerButton.Font = Enum.Font.SourceSansBold
+killerButton.Parent = frame
+
+-- Add rounded corners to Killer Button
+local killerButtonCorner = Instance.new("UICorner")
+killerButtonCorner.CornerRadius = UDim.new(0, 8)
+killerButtonCorner.Parent = killerButton
+
+-- Create Feedback Label (Below Buttons)
+local feedbackLabel = Instance.new("TextLabel")
+feedbackLabel.Size = UDim2.new(0.8, 0, 0, 30)
+feedbackLabel.Position = UDim2.new(0.1, 0, 1, -80)
+feedbackLabel.BackgroundTransparency = 1
+feedbackLabel.Text = ""
+feedbackLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+feedbackLabel.TextScaled = true
+feedbackLabel.Font = Enum.Font.SourceSans
+feedbackLabel.Parent = frame
+
+-- Variables for state
+local selectedCategory = nil
+local selectedName = nil
+local isSkinMode = false
+local skinParentFolder = nil
+
+-- Function to populate list
+local function populateList(category, parentFolder)
+    for _, child in ipairs(scrollingFrame:GetChildren()) do
+        if child:IsA("TextButton") then
+            child:Destroy()
+        end
+    end
+
+    local assets = ReplicatedStorage:WaitForChild("Assets", 5)
+    local items = {}
+
+    if category == "Skins" and not parentFolder then
+        local skinsFolder = assets:FindFirstChild("Skins")
+        if not skinsFolder then
+            feedbackLabel.Text = "Error: Skins folder not found"
+            feedbackLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+            return
+        end
+        local survivorSkins = skinsFolder:FindFirstChild("Survivors")
+        local killerSkins = skinsFolder:FindFirstChild("Killers")
+        if survivorSkins then
+            for _, item in ipairs(survivorSkins:GetChildren()) do
+                table.insert(items, {Name = "S:" .. item.Name, OriginalName = item.Name, Folder = item})
+            end
+        end
+        if killerSkins then
+            for _, item in ipairs(killerSkins:GetChildren()) do
+                table.insert(items, {Name = "K:" .. item.Name, OriginalName = item.Name, Folder = item})
+            end
+        end
+    elseif category == "Skins" and parentFolder then
+        for _, item in ipairs(parentFolder:GetChildren()) do
+            table.insert(items, {Name = parentFolder.Name .. ":" .. item.Name, OriginalName = item.Name})
+        end
+    else
+        local categoryFolder = assets:FindFirstChild(category)
+        if not categoryFolder then
+            feedbackLabel.Text = "Error: " .. category .. " folder not found"
+            feedbackLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+            return
+        end
+        for _, item in ipairs(categoryFolder:GetChildren()) do
+            table.insert(items, {Name = item.Name, OriginalName = item.Name})
+        end
+    end
+
+    for _, item in ipairs(items) do
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(1, 0, 0, 30)
+        button.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+        button.TextColor3 = Color3.fromRGB(255, 255, 255)
+        button.Text = item.Name
+        button.TextScaled = true
+        button.Font = Enum.Font.SourceSans
+        button.Parent = scrollingFrame
+
+        local buttonCorner = Instance.new("UICorner")
+        buttonCorner.CornerRadius = UDim.new(0, 5)
+        buttonCorner.Parent = button
+
+        button.MouseButton1Click:Connect(function()
+            if category == "Skins" and not parentFolder then
+                skinParentFolder = item.Folder
+                populateList("Skins", item.Folder)
+            else
+                selectedName = item.OriginalName
+                selectedLabel.Text = "Selected: " .. item.Name
+                scrollingFrame.Visible = false
+                feedbackLabel.Text = ""
+            end
+        end)
+    end
+
+    scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y)
+    scrollingFrame.Visible = true
+end
+
+-- Connect Skins Button
+skinsButton.MouseButton1Click:Connect(function()
+    selectedCategory = "Skins"
+    isSkinMode = true
+    skinParentFolder = nil
+    selectedName = nil
+    selectedLabel.Text = "Selected: None"
+    populateList("Skins")
+end)
+
+-- Connect Survivor Button
+survivorButton.MouseButton1Click:Connect(function()
+    selectedCategory = "Survivors"
+    isSkinMode = false
+    skinParentFolder = nil
+    selectedName = nil
+    selectedLabel.Text = "Selected: None"
+    populateList("Survivors")
+end)
+
+-- Connect Killer Button
+killerButton.MouseButton1Click:Connect(function()
+    selectedCategory = "Killers"
+    isSkinMode = false
+    skinParentFolder = nil
+    selectedName = nil
+    selectedLabel.Text = "Selected: None"
+    populateList("Killers")
+end)
+
+-- Function to equip item
+local function equipItem(category, itemName)
+    local success, result = pcall(function()
+        local playerData = LocalPlayer:WaitForChild("PlayerData", 5)
+        if not playerData then
+            error("PlayerData not found")
+        end
+
+        local equipped = playerData:WaitForChild("Equipped", 5)
+        if not equipped then
+            equipped = Instance.new("Folder")
+            equipped.Name = "Equipped"
+            equipped.Parent = playerData
+        end
+
+        if isSkinMode then
+            if not skinParentFolder then
+                error("No parent folder selected for skin")
+            end
+            local skinsFolder = equipped:FindFirstChild("Skins")
+            if not skinsFolder then
+                skinsFolder = Instance.new("Folder")
+                skinsFolder.Name = "Skins"
+                skinsFolder.Parent = equipped
+            end
+            local skinValue = skinsFolder:FindFirstChild(skinParentFolder.Name)
+            if not skinValue then
+                skinValue = Instance.new("StringValue")
+                skinValue.Name = skinParentFolder.Name
+                skinValue.Parent = skinsFolder
+            end
+            skinValue.Value = itemName
+            return "Equipped skin " .. itemName .. " for " .. skinParentFolder.Name
+        else
+            local valueName = category == "Survivors" and "Survivor" or "Killer"
+            local stringValue = equipped:FindFirstChild(valueName)
+            if not stringValue then
+                stringValue = Instance.new("StringValue")
+                stringValue.Name = valueName
+                stringValue.Parent = equipped
+            end
+            stringValue.Value = itemName
+            return "Equipped " .. category .. ": " .. itemName
+        end
+    end)
+
+    if success then
+        feedbackLabel.Text = result
+        feedbackLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+    else
+        feedbackLabel.Text = "Error: " .. tostring(result)
+        feedbackLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+    end
+end
+
+-- Connect Equip Button
+equipButton.MouseButton1Click:Connect(function()
+    if not selectedCategory or not selectedName then
+        feedbackLabel.Text = "Error: Select category and name first"
+        feedbackLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+        return
+    end
+    equipItem(selectedCategory, selectedName)
+end)
+
+-- Close button
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -35, 0, 5)
+closeButton.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.Text = "X"
+closeButton.TextScaled = true
+closeButton.Font = Enum.Font.SourceSansBold
+closeButton.Parent = frame
+
+-- Add rounded corners to Close Button
+local closeButtonCorner = Instance.new("UICorner")
+closeButtonCorner.CornerRadius = UDim.new(0, 8)
+closeButtonCorner.Parent = closeButton
+
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
+
+print("Forsaken Equip Glitcher GUI updated with fixed skin equipping")
+]]
+
+-- Create ScreenGui for Combined GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "EquipAndPurchaseGlitcherGui"
+screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui", 5)
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
+
+-- Create Outer Frame (for white outline)
+local outerFrame = Instance.new("Frame")
+outerFrame.Size = UDim2.new(0, 310, 0, 310)
+outerFrame.Position = UDim2.new(0.5, -155, 0.5, -155)
+outerFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+outerFrame.BorderSizePixel = 0
+outerFrame.Parent = screenGui
+
+-- Add rounded corners to Outer Frame
+local outerFrameCorner = Instance.new("UICorner")
+outerFrameCorner.CornerRadius = UDim.new(0, 12)
+outerFrameCorner.Parent = outerFrame
+
+-- Create Main Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 300, 0, 300)
+frame.Position = UDim2.new(0.5, -150, 0.5, -150)
+frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+frame.BorderSizePixel = 0
+frame.Parent = screenGui
+
+-- Add rounded corners to Main Frame
+local frameCorner = Instance.new("UICorner")
+frameCorner.CornerRadius = UDim.new(0, 10)
+frameCorner.Parent = frame
+
+-- Make Frame draggable
+local dragging, dragInput, dragStart, startPos
+local function updateInput(input)
+    local delta = input.Position - dragStart
+    frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    outerFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X - 5, startPos.Y.Scale, startPos.Y.Offset + delta.Y - 5)
+end
+
+frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+frame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input == dragInput then
+        updateInput(input)
+    end
+end)
+
+-- Create TextLabel (Title)
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, 0, 0, 30)
+titleLabel.Position = UDim2.new(0, 0, 0, 5)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "Forsaken Equip And Purchase Glitcher"
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.TextScaled = true
+titleLabel.Font = Enum.Font.SourceSansBold
+titleLabel.Parent = frame
+
+-- Create Purchase Glitcher Button (Left, Green)
+local purchaseButton = Instance.new("TextButton")
+purchaseButton.Size = UDim2.new(0.4, 0, 0, 40)
+purchaseButton.Position = UDim2.new(0.1, 0, 0.5, -20)
+purchaseButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+purchaseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+purchaseButton.Text = "Purchase Glitcher"
+purchaseButton.TextScaled = true
+purchaseButton.Font = Enum.Font.SourceSansBold
+purchaseButton.Parent = frame
+
+-- Add rounded corners to Purchase Button
+local purchaseButtonCorner = Instance.new("UICorner")
+purchaseButtonCorner.CornerRadius = UDim.new(0, 8)
+purchaseButtonCorner.Parent = purchaseButton
+
+-- Create Equip Glitcher Button (Right, Purple)
+local equipButton = Instance.new("TextButton")
+equipButton.Size = UDim2.new(0.4, 0, 0, 40)
+equipButton.Position = UDim2.new(0.5, 0, 0.5, -20)
+equipButton.BackgroundColor3 = Color3.fromRGB(128, 0, 128)
+equipButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+equipButton.Text = "Equip Glitcher"
+equipButton.TextScaled = true
+equipButton.Font = Enum.Font.SourceSansBold
+equipButton.Parent = frame
+
+-- Add rounded corners to Equip Button
+local equipButtonCorner = Instance.new("UICorner")
+equipButtonCorner.CornerRadius = UDim.new(0, 8)
+equipButtonCorner.Parent = equipButton
+
+-- Create Minimize Button
+local minimizeButton = Instance.new("TextButton")
+minimizeButton.Size = UDim2.new(0, 30, 0, 30)
+minimizeButton.Position = UDim2.new(1, -70, 0, 5)
+minimizeButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+minimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+minimizeButton.Text = "-"
+minimizeButton.TextScaled = true
+minimizeButton.Font = Enum.Font.SourceSansBold
+minimizeButton.Parent = frame
+
+-- Add rounded corners to Minimize Button
+local minimizeButtonCorner = Instance.new("UICorner")
+minimizeButtonCorner.CornerRadius = UDim.new(0, 8)
+minimizeButtonCorner.Parent = minimizeButton
+
+-- Create Close Button
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -35, 0, 5)
+closeButton.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.Text = "X"
+closeButton.TextScaled = true
+closeButton.Font = Enum.Font.SourceSansBold
+closeButton.Parent = frame
+
+-- Add rounded corners to Close Button
+local closeButtonCorner = Instance.new("UICorner")
+closeButtonCorner.CornerRadius = UDim.new(0, 8)
+closeButtonCorner.Parent = closeButton
+
+-- Minimize state
+local isMinimized = false
+local function toggleMinimize()
+    isMinimized = not isMinimized
+    if isMinimized then
+        frame.Size = UDim2.new(0, 300, 0, 50)
+        outerFrame.Size = UDim2.new(0, 310, 0, 60)
+        purchaseButton.Visible = false
+        equipButton.Visible = false
+        minimizeButton.Text = "+"
+    else
+        frame.Size = UDim2.new(0, 300, 0, 300)
+        outerFrame.Size = UDim2.new(0, 310, 0, 310)
+        purchaseButton.Visible = true
+        equipButton.Visible = true
+        minimizeButton.Text = "-"
+    end
+end
+
+minimizeButton.MouseButton1Click:Connect(toggleMinimize)
+
+-- Connect Purchase Button
+purchaseButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+    loadstring(purchaseGlitcherScript)()
+end)
+
+-- Connect Equip Button
+equipButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+    loadstring(equipGlitcherScript)()
+end)
+
+-- Connect Close Button
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
+
+print("Forsaken Equip And Purchase Glitcher GUI created with minimize functionality")
