@@ -38,7 +38,7 @@ local Window = Rayfield:CreateWindow({
 })
 
 local MainTab = Window:CreateTab("Games", nil) -- Title, Image
-local Games = Window:CreateTab("Games", nil) -- Title, Image
+local GamesTab = Window:CreateTab("Games", nil) -- Title, Image
 local MainSection = MainTab:CreateSection("Universal")
 
 Rayfield:Notify({
@@ -76,5 +76,158 @@ local Slider = MainTab:CreateSlider({
    Flag = "Slider2", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
    Callback = function(Value)
         game.Players.LocalPlayer.Character.Humanoid.JumpPower = (Value)
+   end,
+})
+
+local Toggle = MainTab:CreateToggle({
+   Name = "ESP (Broken currently does not toggle)",
+   CurrentValue = false,
+   Flag = "Toggle1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Callback = function(Value)
+        -- Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+-- Tables to store drawings & highlights
+local ESPObjects = {}
+local Highlights = {}
+local RenderConnection
+local PlayerConnections = {}
+
+-- Function to add ESP & Chams to a single player
+local function addESP(player)
+    if player == LocalPlayer then return end
+    local char = player.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+
+    -- Chams
+    if not Highlights[player] then
+        local highlight = Instance.new("Highlight")
+        highlight.Name = player.Name .. "_Chams"
+        highlight.FillColor = Color3.fromRGB(0, 0, 255)
+        highlight.FillTransparency = 0.25
+        highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+        highlight.Adornee = char
+        highlight.Parent = workspace
+        Highlights[player] = highlight
+    end
+
+    -- 2D ESP
+    if not ESPObjects[player] then
+        local box = Drawing.new("Square")
+        box.Color = Color3.fromRGB(255, 0, 0)
+        box.Thickness = 2
+        box.Filled = false
+        box.Transparency = 1
+        box.ZIndex = 2
+
+        local nameTag = Drawing.new("Text")
+        nameTag.Text = player.Name
+        nameTag.Color = Color3.fromRGB(255, 255, 255)
+        nameTag.Size = 16
+        nameTag.Center = true
+        nameTag.Outline = true
+        nameTag.ZIndex = 2
+
+        local line = Drawing.new("Line")
+        line.Color = Color3.fromRGB(0, 255, 0)
+        line.Thickness = 2
+        line.ZIndex = 2
+
+        ESPObjects[player] = {Box = box, NameTag = nameTag, Line = line}
+    end
+end
+
+-- Function to remove ESP & Chams from a player
+local function removeESP(player)
+    if ESPObjects[player] then
+        local obj = ESPObjects[player]
+        if obj.Box then obj.Box:Remove() end
+        if obj.NameTag then obj.NameTag:Remove() end
+        if obj.Line then obj.Line:Remove() end
+        ESPObjects[player] = nil
+    end
+    if Highlights[player] then
+        Highlights[player]:Destroy()
+        Highlights[player] = nil
+    end
+end
+
+-- Main toggle
+if Value then
+    -- Add ESP for all current players
+    for _, player in pairs(Players:GetPlayers()) do
+        addESP(player)
+    end
+
+    -- Connect for new players
+    PlayerConnections.PlayerAdded = Players.PlayerAdded:Connect(addESP)
+    PlayerConnections.PlayerRemoving = Players.PlayerRemoving:Connect(removeESP)
+
+    -- Connect for character respawns
+    for _, player in pairs(Players:GetPlayers()) do
+        PlayerConnections[player] = player.CharacterAdded:Connect(function()
+            removeESP(player) -- clean old ESP if any
+            addESP(player)
+        end)
+    end
+
+    -- Update ESP every frame
+    RenderConnection = RunService.RenderStepped:Connect(function()
+        for player, drawings in pairs(ESPObjects) do
+            local char = player.Character
+            if char and char:FindFirstChild("HumanoidRootPart") then
+                local rootPos = workspace.CurrentCamera:WorldToViewportPoint(char.HumanoidRootPart.Position)
+                local x, y = rootPos.X, rootPos.Y
+                local size = 40
+
+                drawings.Box.Position = Vector2.new(x - size/2, y - size/2)
+                drawings.Box.Size = Vector2.new(size, size)
+                drawings.Box.Visible = true
+
+                drawings.NameTag.Position = Vector2.new(x, y - size/2 - 10)
+                drawings.NameTag.Visible = true
+
+                drawings.Line.From = Vector2.new(workspace.CurrentCamera.ViewportSize.X/2, workspace.CurrentCamera.ViewportSize.Y)
+                drawings.Line.To = Vector2.new(x, y)
+                drawings.Line.Visible = true
+            else
+                drawings.Box.Visible = false
+                drawings.NameTag.Visible = false
+                drawings.Line.Visible = false
+            end
+        end
+    end)
+else
+    -- Disconnect & cleanup everything immediately
+    if RenderConnection then
+        RenderConnection:Disconnect()
+        RenderConnection = nil
+    end
+
+    for _, conn in pairs(PlayerConnections) do
+        if conn then conn:Disconnect() end
+    end
+    PlayerConnections = {}
+
+    for player in pairs(ESPObjects) do
+        removeESP(player)
+    end
+end
+   end,
+})
+
+local Button = GamesTab:CreateButton({
+   Name = "99 Nights in the Forest",
+   Callback = function()
+   loadstring(game:HttpGet("https://raw.githubusercontent.com/adibhub1/99-nighit-in-forest/refs/heads/main/99%20night%20in%20forest"))()
+   end,
+})
+
+local Button = GamesTab:CreateButton({
+   Name = "Forsaken",
+   Callback = function()
+   loadstring(game:HttpGet("https://raw.githubusercontent.com/ivannetta/ShitScripts/refs/heads/main/forsaken.lua", true))()
    end,
 })
