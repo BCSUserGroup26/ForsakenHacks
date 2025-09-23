@@ -37,7 +37,7 @@ local Window = Rayfield:CreateWindow({
    }
 })
 
-local MainTab = Window:CreateTab("Games", nil) -- Title, Image
+local MainTab = Window:CreateTab("Universal", nil) -- Title, Image
 local GamesTab = Window:CreateTab("Games", nil) -- Title, Image
 local MainSection = MainTab:CreateSection("Universal")
 
@@ -221,7 +221,7 @@ end
 local Button = GamesTab:CreateButton({
    Name = "99 Nights in the Forest",
    Callback = function()
-   loadstring(game:HttpGet("https://raw.githubusercontent.com/adibhub1/99-nighit-in-forest/refs/heads/main/99%20night%20in%20forest"))()
+   loadstring(game:HttpGet("https://raw.githubusercontent.com/H4xScripts/Loader/refs/heads/main/loader2.lua", true))()
    end,
 })
 
