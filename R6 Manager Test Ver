@@ -1165,8 +1165,7 @@ local Button = ItemsTab:CreateButton({
 local MODEL_ID = "rbxassetid://139417396635047"
 
 --// CONFIGURATION TABLE
--- Define attachment modes here for easy expansion
--- Each mode lists which Character parts and Model parts to weld in order
+-- Easily expand by adding new entries below
 local ATTACHMENT_MODES = {
 	["Slasher"] = {
 		charParts = {"Chainsaw", "Machete"},
@@ -1180,7 +1179,7 @@ local ATTACHMENT_MODES = {
 		charParts = {"PLACEHOLDER", "PLACEHOLDER"},
 		modelParts = {"One", "Two"},
 	},
-	-- You can easily add new modes like this:
+	-- Example of adding more:
 	-- ["Builder"] = {
 	--     charParts = {"Hammer"},
 	--     modelParts = {"Grip"},
@@ -1215,7 +1214,7 @@ end
 -- Spawn model near player
 model:PivotTo(HumanoidRootPart.CFrame)
 
--- Prep model parts
+-- Prepare model parts
 for _, obj in pairs(model:GetDescendants()) do
 	if obj:IsA("BasePart") then
 		obj.CanCollide = false
@@ -1236,21 +1235,19 @@ local function findPartByName(name)
 	return nil
 end
 
--- Detect which mode to use from StringValue
-local modeValue = model:FindFirstChildWhichIsA("StringValue")
-local mode = modeValue and modeValue.Value or "Slasher"
-local modeData = ATTACHMENT_MODES[mode]
+-- Get mode from StringValue named "Items"
+local itemsValue = model:FindFirstChild("Items")
+local mode = (itemsValue and itemsValue:IsA("StringValue") and itemsValue.Value) or "Slasher"
 
+local modeData = ATTACHMENT_MODES[mode]
 if not modeData then
-	warn("❌ Unknown attachment mode:", mode)
+	warn("❌ Unknown or unsupported Items mode:", mode)
 	model:Destroy()
 	return
 end
 
--- Fetch parts based on mode config
+-- Fetch target parts from Character
 local targetParts = {}
-local modelParts = {}
-
 for _, name in ipairs(modeData.charParts) do
 	local part = Character:FindFirstChild(name)
 	if not part then
@@ -1261,6 +1258,8 @@ for _, name in ipairs(modeData.charParts) do
 	table.insert(targetParts, part)
 end
 
+-- Fetch model parts
+local modelParts = {}
 for _, name in ipairs(modeData.modelParts) do
 	local part = findPartByName(name)
 	if not part then
@@ -1275,12 +1274,13 @@ end
 for i = 1, math.min(#targetParts, #modelParts) do
 	local charPart = targetParts[i]
 	local mdlPart = modelParts[i]
+
 	mdlPart.CFrame = charPart.CFrame
 	mdlPart.Parent = charPart
 	CreateWeldConstraint(charPart, mdlPart)
 end
 
--- Apply invisibility and physics settings
+-- Apply invisibility + physics settings
 local allParts = {}
 for _, obj in pairs(targetParts) do table.insert(allParts, obj) end
 for _, obj in pairs(modelParts) do table.insert(allParts, obj) end
@@ -1313,9 +1313,9 @@ local Two = findPartByName("Two")
 if One then One.Transparency = 0 end
 if Two then Two.Transparency = 0 end
 
--- Cleanup leftover container
+-- Cleanup leftover model container
 model:Destroy()
 
-print("✅ Successfully attached model using mode:", mode)
+print("✅ Successfully attached model using mode from 'Items':", mode)
    end,
 })
