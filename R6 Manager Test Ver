@@ -1183,21 +1183,21 @@ local Button = CustomTab:CreateButton({
 local MODEL_ID = ("rbxassetid://" .. CustomItemInput.CurrentValue)
 
 --// CONFIGURATION TABLE
--- Easily expand by adding new entries below
+-- Add or modify attachment sets here.
 local ATTACHMENT_MODES = {
 	["Slasher"] = {
 		charParts = {"Chainsaw", "Machete"},
 		modelParts = {"One", "Two"},
 	},
 	["Noli"] = {
-		charParts = {"Voidstar"},
-		modelParts = {"One"},
+		charParts = {"Voidstar", "VoidstarCrown"},
+		modelParts = {"One", "Two"},
 	},
 	["1x1x1x1"] = {
 		charParts = {"PLACEHOLDER", "PLACEHOLDER"},
 		modelParts = {"One", "Two"},
 	},
-	-- Example of adding more:
+	-- Example for future modes:
 	-- ["Builder"] = {
 	--     charParts = {"Hammer"},
 	--     modelParts = {"Grip"},
@@ -1219,7 +1219,7 @@ local Player = Players.LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 
--- Load model safely
+-- Load the model safely
 local success, model = pcall(function()
 	return game:GetObjects(MODEL_ID)[1]
 end)
@@ -1229,7 +1229,7 @@ if not success or not model then
 	return
 end
 
--- Spawn model near player
+-- Spawn the model near the player
 model:PivotTo(HumanoidRootPart.CFrame)
 
 -- Prepare model parts
@@ -1243,7 +1243,7 @@ for _, obj in pairs(model:GetDescendants()) do
 	end
 end
 
--- Helper to find BasePart by name in model
+-- Helper: Find a BasePart by name in the model
 local function findPartByName(name)
 	for _, obj in pairs(model:GetDescendants()) do
 		if obj.Name == name and obj:IsA("BasePart") then
@@ -1264,7 +1264,7 @@ if not modeData then
 	return
 end
 
--- Fetch target parts from Character
+-- Fetch target (character) parts
 local targetParts = {}
 for _, name in ipairs(modeData.charParts) do
 	local part = Character:FindFirstChild(name)
@@ -1292,13 +1292,12 @@ end
 for i = 1, math.min(#targetParts, #modelParts) do
 	local charPart = targetParts[i]
 	local mdlPart = modelParts[i]
-
 	mdlPart.CFrame = charPart.CFrame
 	mdlPart.Parent = charPart
 	CreateWeldConstraint(charPart, mdlPart)
 end
 
--- Apply invisibility + physics settings
+-- Apply invisibility and physics settings
 local allParts = {}
 for _, obj in pairs(targetParts) do table.insert(allParts, obj) end
 for _, obj in pairs(modelParts) do table.insert(allParts, obj) end
@@ -1357,21 +1356,21 @@ local Button = ItemsTab:CreateButton({
 local MODEL_ID = "rbxassetid://139417396635047"
 
 --// CONFIGURATION TABLE
--- Easily expand by adding new entries below
+-- Add or modify attachment sets here.
 local ATTACHMENT_MODES = {
 	["Slasher"] = {
 		charParts = {"Chainsaw", "Machete"},
 		modelParts = {"One", "Two"},
 	},
 	["Noli"] = {
-		charParts = {"Voidstar"},
-		modelParts = {"One"},
+		charParts = {"Voidstar", "VoidstarCrown"},
+		modelParts = {"One", "Two"},
 	},
 	["1x1x1x1"] = {
 		charParts = {"PLACEHOLDER", "PLACEHOLDER"},
 		modelParts = {"One", "Two"},
 	},
-	-- Example of adding more:
+	-- Example for future modes:
 	-- ["Builder"] = {
 	--     charParts = {"Hammer"},
 	--     modelParts = {"Grip"},
@@ -1393,7 +1392,7 @@ local Player = Players.LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 
--- Load model safely
+-- Load the model safely
 local success, model = pcall(function()
 	return game:GetObjects(MODEL_ID)[1]
 end)
@@ -1403,7 +1402,7 @@ if not success or not model then
 	return
 end
 
--- Spawn model near player
+-- Spawn the model near the player
 model:PivotTo(HumanoidRootPart.CFrame)
 
 -- Prepare model parts
@@ -1417,7 +1416,7 @@ for _, obj in pairs(model:GetDescendants()) do
 	end
 end
 
--- Helper to find BasePart by name in model
+-- Helper: Find a BasePart by name in the model
 local function findPartByName(name)
 	for _, obj in pairs(model:GetDescendants()) do
 		if obj.Name == name and obj:IsA("BasePart") then
@@ -1438,7 +1437,7 @@ if not modeData then
 	return
 end
 
--- Fetch target parts from Character
+-- Fetch target (character) parts
 local targetParts = {}
 for _, name in ipairs(modeData.charParts) do
 	local part = Character:FindFirstChild(name)
@@ -1466,13 +1465,12 @@ end
 for i = 1, math.min(#targetParts, #modelParts) do
 	local charPart = targetParts[i]
 	local mdlPart = modelParts[i]
-
 	mdlPart.CFrame = charPart.CFrame
 	mdlPart.Parent = charPart
 	CreateWeldConstraint(charPart, mdlPart)
 end
 
--- Apply invisibility + physics settings
+-- Apply invisibility and physics settings
 local allParts = {}
 for _, obj in pairs(targetParts) do table.insert(allParts, obj) end
 for _, obj in pairs(modelParts) do table.insert(allParts, obj) end
@@ -1508,6 +1506,6 @@ if Two then Two.Transparency = 0 end
 -- Cleanup leftover model container
 model:Destroy()
 
-print("✅ Successfully attached model using mode from 'Items':", mode)
+print("✅ Successfully attached model using mode from 'Items':", model")
    end,
 })
