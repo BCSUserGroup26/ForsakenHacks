@@ -1279,11 +1279,11 @@ print("âœ… Morph applied successfully (Weld version, animation synced, colli
 local Button = CustomTab:CreateButton({
    Name = "Set Items",
    Callback = function()
-   --// LocalScript - client-sided
---// Change your model ID here:
+   -- LocalScript - client-sided
+-- Change your model ID here:
 local MODEL_ID = ("rbxassetid://" .. CustomItemInput.CurrentValue)
 
---// CONFIGURATION
+-- Configuration for different modes
 local ATTACHMENT_MODES = {
 	["Slasher"] = {
 		charParts = {"Chainsaw", "Machete"},
@@ -1311,14 +1311,16 @@ local ok, model = pcall(function()
 end)
 
 if not ok or not model then
-	warn("❌ Failed to load model.")
+	warn("❌ Failed to load model:", model)
 	return
 end
 
--- Move it near the player just in case
-model:PivotTo(HumanoidRootPart.CFrame)
+-- Move model near player
+pcall(function()
+	model:PivotTo(HumanoidRootPart.CFrame)
+end)
 
--- Find the "Items" StringValue
+-- Get the Items StringValue to decide mode
 local itemsValue = model:FindFirstChild("Items")
 local mode = (itemsValue and itemsValue:IsA("StringValue") and itemsValue.Value) or "Slasher"
 local modeData = ATTACHMENT_MODES[mode]
@@ -1329,9 +1331,9 @@ if not modeData then
 	return
 end
 
--- Helper: Find model part by name
+-- Helper to find a MeshPart in model
 local function findModelPart(name)
-	for _, obj in pairs(model:GetDescendants()) do
+	for _, obj in ipairs(model:GetDescendants()) do
 		if obj:IsA("MeshPart") and obj.Name == name then
 			return obj
 		end
@@ -1339,29 +1341,43 @@ local function findModelPart(name)
 	return nil
 end
 
--- Apply Mesh + Texture from model to character parts
+-- Apply mesh + texture from model to character parts
 for i, charName in ipairs(modeData.charParts) do
-	local charPart = Character:FindFirstChild(charName)
-	local modelPart = findModelPart(modeData.modelParts[i])
+	local success, err = pcall(function()
+		local charPart = Character:FindFirstChild(charName)
+		local modelPart = findModelPart(modeData.modelParts[i])
 
-	if charPart and modelPart then
-		if charPart:IsA("MeshPart") then
-			charPart.MeshId = modelPart.MeshId
-			charPart.TextureID = modelPart.TextureID
-			charPart.Transparency = 0
-			print("✅ Applied Mesh + Texture to", charPart.Name)
+		if charPart and modelPart then
+			if charPart:IsA("MeshPart") then
+				charPart.MeshId = modelPart.MeshId
+				charPart.TextureID = modelPart.TextureID
+				charPart.Transparency = 0
+				print("✅ Applied Mesh + Texture to:", charPart.Name)
+			else
+				warn("⚠️", charName, "is not a MeshPart, skipping mesh copy.")
+			end
 		else
-			warn("⚠️", charName, "is not a MeshPart, skipping mesh application.")
+			if not charPart then
+				warn("⚠️ Missing character part:", charName)
+			end
+			if not modelPart then
+				warn("⚠️ Missing model part:", modeData.modelParts[i])
+			end
 		end
-	else
-		if not charPart then warn("⚠️ Missing character part:", charName) end
-		if not modelPart then warn("⚠️ Missing model part:", modeData.modelParts[i]) end
+	end)
+
+	if not success then
+		warn("⚠️ Error while applying mesh for", charName, ":", err)
 	end
 end
 
--- Cleanup
-model:Destroy()
+-- Clean up safely
+pcall(function()
+	model:Destroy()
+end)
+
 print("✨ Mesh application complete. Mode:", mode)
+
    end,
 })
 
@@ -1379,11 +1395,11 @@ local SlasherSection = ItemsTab:CreateSection("Slasher Machete and Chainsaw")
 local Button = ItemsTab:CreateButton({
    Name = "67 Slasher Chainsaw and Machete",
    Callback = function()
-   --// LocalScript - client-sided
---// Change your model ID here:
+   -- LocalScript - client-sided
+-- Change your model ID here:
 local MODEL_ID = "rbxassetid://139417396635047"
 
---// CONFIGURATION
+-- Configuration for different modes
 local ATTACHMENT_MODES = {
 	["Slasher"] = {
 		charParts = {"Chainsaw", "Machete"},
@@ -1411,14 +1427,16 @@ local ok, model = pcall(function()
 end)
 
 if not ok or not model then
-	warn("❌ Failed to load model.")
+	warn("❌ Failed to load model:", model)
 	return
 end
 
--- Move it near the player just in case
-model:PivotTo(HumanoidRootPart.CFrame)
+-- Move model near player
+pcall(function()
+	model:PivotTo(HumanoidRootPart.CFrame)
+end)
 
--- Find the "Items" StringValue
+-- Get the Items StringValue to decide mode
 local itemsValue = model:FindFirstChild("Items")
 local mode = (itemsValue and itemsValue:IsA("StringValue") and itemsValue.Value) or "Slasher"
 local modeData = ATTACHMENT_MODES[mode]
@@ -1429,9 +1447,9 @@ if not modeData then
 	return
 end
 
--- Helper: Find model part by name
+-- Helper to find a MeshPart in model
 local function findModelPart(name)
-	for _, obj in pairs(model:GetDescendants()) do
+	for _, obj in ipairs(model:GetDescendants()) do
 		if obj:IsA("MeshPart") and obj.Name == name then
 			return obj
 		end
@@ -1439,28 +1457,41 @@ local function findModelPart(name)
 	return nil
 end
 
--- Apply Mesh + Texture from model to character parts
+-- Apply mesh + texture from model to character parts
 for i, charName in ipairs(modeData.charParts) do
-	local charPart = Character:FindFirstChild(charName)
-	local modelPart = findModelPart(modeData.modelParts[i])
+	local success, err = pcall(function()
+		local charPart = Character:FindFirstChild(charName)
+		local modelPart = findModelPart(modeData.modelParts[i])
 
-	if charPart and modelPart then
-		if charPart:IsA("MeshPart") then
-			charPart.MeshId = modelPart.MeshId
-			charPart.TextureID = modelPart.TextureID
-			charPart.Transparency = 0
-			print("✅ Applied Mesh + Texture to", charPart.Name)
+		if charPart and modelPart then
+			if charPart:IsA("MeshPart") then
+				charPart.MeshId = modelPart.MeshId
+				charPart.TextureID = modelPart.TextureID
+				charPart.Transparency = 0
+				print("✅ Applied Mesh + Texture to:", charPart.Name)
+			else
+				warn("⚠️", charName, "is not a MeshPart, skipping mesh copy.")
+			end
 		else
-			warn("⚠️", charName, "is not a MeshPart, skipping mesh application.")
+			if not charPart then
+				warn("⚠️ Missing character part:", charName)
+			end
+			if not modelPart then
+				warn("⚠️ Missing model part:", modeData.modelParts[i])
+			end
 		end
-	else
-		if not charPart then warn("⚠️ Missing character part:", charName) end
-		if not modelPart then warn("⚠️ Missing model part:", modeData.modelParts[i]) end
+	end)
+
+	if not success then
+		warn("⚠️ Error while applying mesh for", charName, ":", err)
 	end
 end
 
--- Cleanup
-model:Destroy()
+-- Clean up safely
+pcall(function()
+	model:Destroy()
+end)
+
 print("✨ Mesh application complete. Mode:", mode)
 
    end,
@@ -1475,11 +1506,11 @@ print("✨ Mesh application complete. Mode:", mode)
 local Button = ItemsTab:CreateButton({
    Name = "Yeslo Voidstar and Crown",
    Callback = function()
-   --// LocalScript - client-sided
---// Change your model ID here:
+   -- LocalScript - client-sided
+-- Change your model ID here:
 local MODEL_ID = "rbxassetid://137353850703602"
 
---// CONFIGURATION
+-- Configuration for different modes
 local ATTACHMENT_MODES = {
 	["Slasher"] = {
 		charParts = {"Chainsaw", "Machete"},
@@ -1507,14 +1538,16 @@ local ok, model = pcall(function()
 end)
 
 if not ok or not model then
-	warn("❌ Failed to load model.")
+	warn("❌ Failed to load model:", model)
 	return
 end
 
--- Move it near the player just in case
-model:PivotTo(HumanoidRootPart.CFrame)
+-- Move model near player
+pcall(function()
+	model:PivotTo(HumanoidRootPart.CFrame)
+end)
 
--- Find the "Items" StringValue
+-- Get the Items StringValue to decide mode
 local itemsValue = model:FindFirstChild("Items")
 local mode = (itemsValue and itemsValue:IsA("StringValue") and itemsValue.Value) or "Slasher"
 local modeData = ATTACHMENT_MODES[mode]
@@ -1525,9 +1558,9 @@ if not modeData then
 	return
 end
 
--- Helper: Find model part by name
+-- Helper to find a MeshPart in model
 local function findModelPart(name)
-	for _, obj in pairs(model:GetDescendants()) do
+	for _, obj in ipairs(model:GetDescendants()) do
 		if obj:IsA("MeshPart") and obj.Name == name then
 			return obj
 		end
@@ -1535,28 +1568,41 @@ local function findModelPart(name)
 	return nil
 end
 
--- Apply Mesh + Texture from model to character parts
+-- Apply mesh + texture from model to character parts
 for i, charName in ipairs(modeData.charParts) do
-	local charPart = Character:FindFirstChild(charName)
-	local modelPart = findModelPart(modeData.modelParts[i])
+	local success, err = pcall(function()
+		local charPart = Character:FindFirstChild(charName)
+		local modelPart = findModelPart(modeData.modelParts[i])
 
-	if charPart and modelPart then
-		if charPart:IsA("MeshPart") then
-			charPart.MeshId = modelPart.MeshId
-			charPart.TextureID = modelPart.TextureID
-			charPart.Transparency = 0
-			print("✅ Applied Mesh + Texture to", charPart.Name)
+		if charPart and modelPart then
+			if charPart:IsA("MeshPart") then
+				charPart.MeshId = modelPart.MeshId
+				charPart.TextureID = modelPart.TextureID
+				charPart.Transparency = 0
+				print("✅ Applied Mesh + Texture to:", charPart.Name)
+			else
+				warn("⚠️", charName, "is not a MeshPart, skipping mesh copy.")
+			end
 		else
-			warn("⚠️", charName, "is not a MeshPart, skipping mesh application.")
+			if not charPart then
+				warn("⚠️ Missing character part:", charName)
+			end
+			if not modelPart then
+				warn("⚠️ Missing model part:", modeData.modelParts[i])
+			end
 		end
-	else
-		if not charPart then warn("⚠️ Missing character part:", charName) end
-		if not modelPart then warn("⚠️ Missing model part:", modeData.modelParts[i]) end
+	end)
+
+	if not success then
+		warn("⚠️ Error while applying mesh for", charName, ":", err)
 	end
 end
 
--- Cleanup
-model:Destroy()
+-- Clean up safely
+pcall(function()
+	model:Destroy()
+end)
+
 print("✨ Mesh application complete. Mode:", mode)
 
    end,
