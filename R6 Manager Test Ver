@@ -1457,7 +1457,6 @@ local Button = ItemsTab:CreateButton({
 local MODEL_ID = "rbxassetid://139417396635047"
 
 --// CONFIGURATION TABLE
--- Add or modify attachment sets here.
 local ATTACHMENT_MODES = {
 	["Slasher"] = {
 		charParts = {"Chainsaw", "Machete"},
@@ -1466,16 +1465,12 @@ local ATTACHMENT_MODES = {
 	["Noli"] = {
 		charParts = {"Voidstar", "VoidstarCrown"},
 		modelParts = {"One", "Two"},
+		special = "Noli", -- marks custom handling
 	},
 	["1x1x1x1"] = {
 		charParts = {"PLACEHOLDER", "PLACEHOLDER"},
 		modelParts = {"One", "Two"},
 	},
-	-- Example for future modes:
-	-- ["Builder"] = {
-	--     charParts = {"Hammer"},
-	--     modelParts = {"Grip"},
-	-- },
 }
 
 -- Helper: Create a WeldConstraint between two BaseParts
@@ -1517,7 +1512,7 @@ for _, obj in pairs(model:GetDescendants()) do
 	end
 end
 
--- Helper: Find a BasePart by name in the model
+-- Helper to find BasePart by name in model
 local function findPartByName(name)
 	for _, obj in pairs(model:GetDescendants()) do
 		if obj.Name == name and obj:IsA("BasePart") then
@@ -1562,16 +1557,51 @@ for _, name in ipairs(modeData.modelParts) do
 	table.insert(modelParts, part)
 end
 
--- Weld corresponding parts
-for i = 1, math.min(#targetParts, #modelParts) do
-	local charPart = targetParts[i]
-	local mdlPart = modelParts[i]
-	mdlPart.CFrame = charPart.CFrame
-	mdlPart.Parent = charPart
-	CreateWeldConstraint(charPart, mdlPart)
+-- Make Chainsaw, Machete, and Crown transparent before welding
+for _, name in ipairs({"Chainsaw", "Machete", "Crown"}) do
+	local part = Character:FindFirstChild(name)
+	if part and part:IsA("BasePart") then
+		part.Transparency = 1
+	end
+	for _, desc in ipairs(Character:GetDescendants()) do
+		if desc:IsA("BasePart") and desc.Name == name then
+			desc.Transparency = 1
+		end
+	end
 end
 
--- Apply invisibility and physics settings
+-- Handle special case: Noli
+if modeData.special == "Noli" then
+	local Voidstar = targetParts[1]
+	local VoidstarCrown = targetParts[2]
+	local One = modelParts[1]
+	local Two = modelParts[2]
+
+	-- Copy One's Mesh + Texture into Voidstar (if both exist)
+	if One and One:IsA("MeshPart") and Voidstar and Voidstar:IsA("MeshPart") then
+		Voidstar.MeshId = One.MeshId
+		Voidstar.TextureID = One.TextureID
+		print("✨ Applied Noli mesh from model to Voidstar.")
+	end
+
+	-- Weld Two (Crown) normally to VoidstarCrown if present
+	if Two and VoidstarCrown then
+		Two.CFrame = VoidstarCrown.CFrame
+		Two.Parent = VoidstarCrown
+		CreateWeldConstraint(VoidstarCrown, Two)
+	end
+else
+	-- Default behavior for all other modes
+	for i = 1, math.min(#targetParts, #modelParts) do
+		local charPart = targetParts[i]
+		local mdlPart = modelParts[i]
+		mdlPart.CFrame = charPart.CFrame
+		mdlPart.Parent = charPart
+		CreateWeldConstraint(charPart, mdlPart)
+	end
+end
+
+-- Apply invisibility + physics settings
 local allParts = {}
 for _, obj in pairs(targetParts) do table.insert(allParts, obj) end
 for _, obj in pairs(modelParts) do table.insert(allParts, obj) end
@@ -1583,7 +1613,7 @@ for _, obj in pairs(allParts) do
 		obj.CanQuery = false
 		obj.Massless = true
 		obj.Anchored = false
-		obj.Transparency = 1
+		obj.Transparency = obj.Transparency or 1
 	end
 
 	for _, part in pairs(obj:GetDescendants()) do
@@ -1593,7 +1623,7 @@ for _, obj in pairs(allParts) do
 			part.CanQuery = false
 			part.Massless = true
 			part.Anchored = false
-			part.Transparency = 1
+			part.Transparency = part.Transparency or 1
 		end
 	end
 end
@@ -1607,7 +1637,8 @@ if Two then Two.Transparency = 0 end
 -- Cleanup leftover model container
 model:Destroy()
 
-print("✅ Successfully attached model using mode from 'Items':", "model")
+print("✅ Successfully attached model using mode from 'Items':", mode)
+
    end,
 })
 
@@ -1620,12 +1651,11 @@ print("✅ Successfully attached model using mode from 'Items':", "model")
 local Button = ItemsTab:CreateButton({
    Name = "Yeslo Voidstar and Crown",
    Callback = function()
-   --// LocalScript - client-sided
+   ---// LocalScript - client-sided
 --// Change your model ID here:
 local MODEL_ID = "rbxassetid://137353850703602"
 
 --// CONFIGURATION TABLE
--- Add or modify attachment sets here.
 local ATTACHMENT_MODES = {
 	["Slasher"] = {
 		charParts = {"Chainsaw", "Machete"},
@@ -1634,16 +1664,12 @@ local ATTACHMENT_MODES = {
 	["Noli"] = {
 		charParts = {"Voidstar", "VoidstarCrown"},
 		modelParts = {"One", "Two"},
+		special = "Noli", -- marks custom handling
 	},
 	["1x1x1x1"] = {
 		charParts = {"PLACEHOLDER", "PLACEHOLDER"},
 		modelParts = {"One", "Two"},
 	},
-	-- Example for future modes:
-	-- ["Builder"] = {
-	--     charParts = {"Hammer"},
-	--     modelParts = {"Grip"},
-	-- },
 }
 
 -- Helper: Create a WeldConstraint between two BaseParts
@@ -1685,7 +1711,7 @@ for _, obj in pairs(model:GetDescendants()) do
 	end
 end
 
--- Helper: Find a BasePart by name in the model
+-- Helper to find BasePart by name in model
 local function findPartByName(name)
 	for _, obj in pairs(model:GetDescendants()) do
 		if obj.Name == name and obj:IsA("BasePart") then
@@ -1730,16 +1756,51 @@ for _, name in ipairs(modeData.modelParts) do
 	table.insert(modelParts, part)
 end
 
--- Weld corresponding parts
-for i = 1, math.min(#targetParts, #modelParts) do
-	local charPart = targetParts[i]
-	local mdlPart = modelParts[i]
-	mdlPart.CFrame = charPart.CFrame
-	mdlPart.Parent = charPart
-	CreateWeldConstraint(charPart, mdlPart)
+-- Make Chainsaw, Machete, and Crown transparent before welding
+for _, name in ipairs({"Chainsaw", "Machete", "Crown"}) do
+	local part = Character:FindFirstChild(name)
+	if part and part:IsA("BasePart") then
+		part.Transparency = 1
+	end
+	for _, desc in ipairs(Character:GetDescendants()) do
+		if desc:IsA("BasePart") and desc.Name == name then
+			desc.Transparency = 1
+		end
+	end
 end
 
--- Apply invisibility and physics settings
+-- Handle special case: Noli
+if modeData.special == "Noli" then
+	local Voidstar = targetParts[1]
+	local VoidstarCrown = targetParts[2]
+	local One = modelParts[1]
+	local Two = modelParts[2]
+
+	-- Copy One's Mesh + Texture into Voidstar (if both exist)
+	if One and One:IsA("MeshPart") and Voidstar and Voidstar:IsA("MeshPart") then
+		Voidstar.MeshId = One.MeshId
+		Voidstar.TextureID = One.TextureID
+		print("✨ Applied Noli mesh from model to Voidstar.")
+	end
+
+	-- Weld Two (Crown) normally to VoidstarCrown if present
+	if Two and VoidstarCrown then
+		Two.CFrame = VoidstarCrown.CFrame
+		Two.Parent = VoidstarCrown
+		CreateWeldConstraint(VoidstarCrown, Two)
+	end
+else
+	-- Default behavior for all other modes
+	for i = 1, math.min(#targetParts, #modelParts) do
+		local charPart = targetParts[i]
+		local mdlPart = modelParts[i]
+		mdlPart.CFrame = charPart.CFrame
+		mdlPart.Parent = charPart
+		CreateWeldConstraint(charPart, mdlPart)
+	end
+end
+
+-- Apply invisibility + physics settings
 local allParts = {}
 for _, obj in pairs(targetParts) do table.insert(allParts, obj) end
 for _, obj in pairs(modelParts) do table.insert(allParts, obj) end
@@ -1751,7 +1812,7 @@ for _, obj in pairs(allParts) do
 		obj.CanQuery = false
 		obj.Massless = true
 		obj.Anchored = false
-		obj.Transparency = 1
+		obj.Transparency = obj.Transparency or 1
 	end
 
 	for _, part in pairs(obj:GetDescendants()) do
@@ -1761,7 +1822,7 @@ for _, obj in pairs(allParts) do
 			part.CanQuery = false
 			part.Massless = true
 			part.Anchored = false
-			part.Transparency = 1
+			part.Transparency = part.Transparency or 1
 		end
 	end
 end
@@ -1775,6 +1836,7 @@ if Two then Two.Transparency = 0 end
 -- Cleanup leftover model container
 model:Destroy()
 
-print("✅ Successfully attached model using mode from 'Items':", "model")
+print("✅ Successfully attached model using mode from 'Items':", mode)
+
    end,
 })
