@@ -1280,104 +1280,113 @@ local Button = CustomTab:CreateButton({
    Name = "Set Items",
    Callback = function()
    -- LocalScript - client-sided
--- Change your model ID here:
 local MODEL_ID = ("rbxassetid://" .. CustomItemInput.CurrentValue)
 
--- Configuration for different modes
 local ATTACHMENT_MODES = {
-	["Slasher"] = {
-		charParts = {"Chainsaw", "Machete"},
-		modelParts = {"One", "Two"},
-	},
-	["Noli"] = {
-		charParts = {"Voidstar", "VoidstarCrown"},
-		modelParts = {"One", "Two"},
-	},
-	["1x1x1x1"] = {
-		charParts = {"PLACEHOLDER", "PLACEHOLDER"},
-		modelParts = {"One", "Two"},
-	},
+	["Slasher"] = { charParts = {"Chainsaw", "Machete"}, modelParts = {"One", "Two"} },
+	["Noli"]    = { charParts = {"Voidstar", "VoidstarCrown"}, modelParts = {"One", "Two"} },
+	["1x1x1x1"] = { charParts = {"PLACEHOLDER", "PLACEHOLDER"}, modelParts = {"One", "Two"} },
 }
 
--- Services
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 local Player = Players.LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+
+local function CreateWeld(part0, part1)
+	local weld = Instance.new("WeldConstraint")
+	weld.Part0 = part0
+	weld.Part1 = part1
+	weld.Parent = part0
+	return weld
+end
 
 -- Load model safely
 local ok, model = pcall(function()
 	return game:GetObjects(MODEL_ID)[1]
 end)
-
 if not ok or not model then
 	warn("❌ Failed to load model:", model)
 	return
 end
+model:PivotTo(HumanoidRootPart.CFrame)
 
--- Move model near player
-pcall(function()
-	model:PivotTo(HumanoidRootPart.CFrame)
-end)
-
--- Get the Items StringValue to decide mode
+-- Detect mode from Items StringValue
 local itemsValue = model:FindFirstChild("Items")
 local mode = (itemsValue and itemsValue:IsA("StringValue") and itemsValue.Value) or "Slasher"
 local modeData = ATTACHMENT_MODES[mode]
-
 if not modeData then
 	warn("❌ Unknown Items mode:", mode)
 	model:Destroy()
 	return
 end
 
--- Helper to find a MeshPart in model
+-- Helper to find model parts
 local function findModelPart(name)
-	for _, obj in ipairs(model:GetDescendants()) do
-		if obj:IsA("MeshPart") and obj.Name == name then
+	for _, obj in pairs(model:GetDescendants()) do
+		if obj:IsA("BasePart") and obj.Name == name then
 			return obj
 		end
 	end
 	return nil
 end
 
--- Apply mesh + texture from model to character parts
-for i, charName in ipairs(modeData.charParts) do
-	local success, err = pcall(function()
-		local charPart = Character:FindFirstChild(charName)
-		local modelPart = findModelPart(modeData.modelParts[i])
-
-		if charPart and modelPart then
-			if charPart:IsA("MeshPart") then
-				charPart.MeshId = modelPart.MeshId
-				charPart.TextureID = modelPart.TextureID
-				charPart.Transparency = 0
-				print("✅ Applied Mesh + Texture to:", charPart.Name)
-			else
-				warn("⚠️", charName, "is not a MeshPart, skipping mesh copy.")
-			end
-		else
-			if not charPart then
-				warn("⚠️ Missing character part:", charName)
-			end
-			if not modelPart then
-				warn("⚠️ Missing model part:", modeData.modelParts[i])
-			end
-		end
-	end)
-
-	if not success then
-		warn("⚠️ Error while applying mesh for", charName, ":", err)
+-- Make model parts physics-safe
+for _, obj in pairs(model:GetDescendants()) do
+	if obj:IsA("BasePart") then
+		obj.CanCollide = false
+		obj.CanTouch = false
+		obj.CanQuery = false
+		obj.Massless = true
+		obj.Anchored = false
 	end
 end
 
--- Clean up safely
-pcall(function()
-	model:Destroy()
+-- Store references to base parts that need looping transparency
+local baseParts = {}
+
+-- Attach and weld model parts to character parts
+for i, charName in ipairs(modeData.charParts) do
+	local charPart = Character:FindFirstChild(charName)
+	local modelPart = findModelPart(modeData.modelParts[i])
+
+	if charPart and modelPart then
+		-- Add to base parts list for transparency loop
+		table.insert(baseParts, charPart)
+
+		-- Weld model part to the base part
+		modelPart.CFrame = charPart.CFrame
+		modelPart.Parent = charPart
+		CreateWeld(charPart, modelPart)
+
+		-- Make model part fully visible
+		modelPart.Transparency = 0
+		for _, desc in ipairs(modelPart:GetDescendants()) do
+			if desc:IsA("BasePart") then
+				desc.Transparency = 0
+			end
+		end
+
+		print("✅ Welded:", modelPart.Name, "→", charPart.Name)
+	else
+		if not charPart then warn("⚠️ Missing character part:", charName) end
+		if not modelPart then warn("⚠️ Missing model part:", modeData.modelParts[i]) end
+	end
+end
+
+-- Loop to keep base parts transparent until they are destroyed
+RunService.Heartbeat:Connect(function()
+	for _, part in ipairs(baseParts) do
+		if part and part.Parent then
+			part.Transparency = 1
+		end
+	end
 end)
 
-print("✨ Mesh application complete. Mode:", mode)
-
+-- Clean up model container
+model:Destroy()
+print("✨ Welds complete. Base parts looped to stay transparent.")
    end,
 })
 
@@ -1396,103 +1405,113 @@ local Button = ItemsTab:CreateButton({
    Name = "67 Slasher Chainsaw and Machete",
    Callback = function()
    -- LocalScript - client-sided
--- Change your model ID here:
 local MODEL_ID = "rbxassetid://139417396635047"
 
--- Configuration for different modes
 local ATTACHMENT_MODES = {
-	["Slasher"] = {
-		charParts = {"Chainsaw", "Machete"},
-		modelParts = {"One", "Two"},
-	},
-	["Noli"] = {
-		charParts = {"Voidstar", "VoidstarCrown"},
-		modelParts = {"One", "Two"},
-	},
-	["1x1x1x1"] = {
-		charParts = {"PLACEHOLDER", "PLACEHOLDER"},
-		modelParts = {"One", "Two"},
-	},
+	["Slasher"] = { charParts = {"Chainsaw", "Machete"}, modelParts = {"One", "Two"} },
+	["Noli"]    = { charParts = {"Voidstar", "VoidstarCrown"}, modelParts = {"One", "Two"} },
+	["1x1x1x1"] = { charParts = {"PLACEHOLDER", "PLACEHOLDER"}, modelParts = {"One", "Two"} },
 }
 
--- Services
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 local Player = Players.LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+
+local function CreateWeld(part0, part1)
+	local weld = Instance.new("WeldConstraint")
+	weld.Part0 = part0
+	weld.Part1 = part1
+	weld.Parent = part0
+	return weld
+end
 
 -- Load model safely
 local ok, model = pcall(function()
 	return game:GetObjects(MODEL_ID)[1]
 end)
-
 if not ok or not model then
 	warn("❌ Failed to load model:", model)
 	return
 end
+model:PivotTo(HumanoidRootPart.CFrame)
 
--- Move model near player
-pcall(function()
-	model:PivotTo(HumanoidRootPart.CFrame)
-end)
-
--- Get the Items StringValue to decide mode
+-- Detect mode from Items StringValue
 local itemsValue = model:FindFirstChild("Items")
 local mode = (itemsValue and itemsValue:IsA("StringValue") and itemsValue.Value) or "Slasher"
 local modeData = ATTACHMENT_MODES[mode]
-
 if not modeData then
 	warn("❌ Unknown Items mode:", mode)
 	model:Destroy()
 	return
 end
 
--- Helper to find a MeshPart in model
+-- Helper to find model parts
 local function findModelPart(name)
-	for _, obj in ipairs(model:GetDescendants()) do
-		if obj:IsA("MeshPart") and obj.Name == name then
+	for _, obj in pairs(model:GetDescendants()) do
+		if obj:IsA("BasePart") and obj.Name == name then
 			return obj
 		end
 	end
 	return nil
 end
 
--- Apply mesh + texture from model to character parts
-for i, charName in ipairs(modeData.charParts) do
-	local success, err = pcall(function()
-		local charPart = Character:FindFirstChild(charName)
-		local modelPart = findModelPart(modeData.modelParts[i])
-
-		if charPart and modelPart then
-			if charPart:IsA("MeshPart") then
-				charPart.MeshId = modelPart.MeshId
-				charPart.TextureID = modelPart.TextureID
-				charPart.Transparency = 0
-				print("✅ Applied Mesh + Texture to:", charPart.Name)
-			else
-				warn("⚠️", charName, "is not a MeshPart, skipping mesh copy.")
-			end
-		else
-			if not charPart then
-				warn("⚠️ Missing character part:", charName)
-			end
-			if not modelPart then
-				warn("⚠️ Missing model part:", modeData.modelParts[i])
-			end
-		end
-	end)
-
-	if not success then
-		warn("⚠️ Error while applying mesh for", charName, ":", err)
+-- Make model parts physics-safe
+for _, obj in pairs(model:GetDescendants()) do
+	if obj:IsA("BasePart") then
+		obj.CanCollide = false
+		obj.CanTouch = false
+		obj.CanQuery = false
+		obj.Massless = true
+		obj.Anchored = false
 	end
 end
 
--- Clean up safely
-pcall(function()
-	model:Destroy()
+-- Store references to base parts that need looping transparency
+local baseParts = {}
+
+-- Attach and weld model parts to character parts
+for i, charName in ipairs(modeData.charParts) do
+	local charPart = Character:FindFirstChild(charName)
+	local modelPart = findModelPart(modeData.modelParts[i])
+
+	if charPart and modelPart then
+		-- Add to base parts list for transparency loop
+		table.insert(baseParts, charPart)
+
+		-- Weld model part to the base part
+		modelPart.CFrame = charPart.CFrame
+		modelPart.Parent = charPart
+		CreateWeld(charPart, modelPart)
+
+		-- Make model part fully visible
+		modelPart.Transparency = 0
+		for _, desc in ipairs(modelPart:GetDescendants()) do
+			if desc:IsA("BasePart") then
+				desc.Transparency = 0
+			end
+		end
+
+		print("✅ Welded:", modelPart.Name, "→", charPart.Name)
+	else
+		if not charPart then warn("⚠️ Missing character part:", charName) end
+		if not modelPart then warn("⚠️ Missing model part:", modeData.modelParts[i]) end
+	end
+end
+
+-- Loop to keep base parts transparent until they are destroyed
+RunService.Heartbeat:Connect(function()
+	for _, part in ipairs(baseParts) do
+		if part and part.Parent then
+			part.Transparency = 1
+		end
+	end
 end)
 
-print("✨ Mesh application complete. Mode:", mode)
+-- Clean up model container
+model:Destroy()
+print("✨ Welds complete. Base parts looped to stay transparent.")
 
    end,
 })
@@ -1507,103 +1526,113 @@ local Button = ItemsTab:CreateButton({
    Name = "Yeslo Voidstar and Crown",
    Callback = function()
    -- LocalScript - client-sided
--- Change your model ID here:
 local MODEL_ID = "rbxassetid://137353850703602"
 
--- Configuration for different modes
 local ATTACHMENT_MODES = {
-	["Slasher"] = {
-		charParts = {"Chainsaw", "Machete"},
-		modelParts = {"One", "Two"},
-	},
-	["Noli"] = {
-		charParts = {"Voidstar", "VoidstarCrown"},
-		modelParts = {"One", "Two"},
-	},
-	["1x1x1x1"] = {
-		charParts = {"PLACEHOLDER", "PLACEHOLDER"},
-		modelParts = {"One", "Two"},
-	},
+	["Slasher"] = { charParts = {"Chainsaw", "Machete"}, modelParts = {"One", "Two"} },
+	["Noli"]    = { charParts = {"Voidstar", "VoidstarCrown"}, modelParts = {"One", "Two"} },
+	["1x1x1x1"] = { charParts = {"PLACEHOLDER", "PLACEHOLDER"}, modelParts = {"One", "Two"} },
 }
 
--- Services
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 local Player = Players.LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+
+local function CreateWeld(part0, part1)
+	local weld = Instance.new("WeldConstraint")
+	weld.Part0 = part0
+	weld.Part1 = part1
+	weld.Parent = part0
+	return weld
+end
 
 -- Load model safely
 local ok, model = pcall(function()
 	return game:GetObjects(MODEL_ID)[1]
 end)
-
 if not ok or not model then
 	warn("❌ Failed to load model:", model)
 	return
 end
+model:PivotTo(HumanoidRootPart.CFrame)
 
--- Move model near player
-pcall(function()
-	model:PivotTo(HumanoidRootPart.CFrame)
-end)
-
--- Get the Items StringValue to decide mode
+-- Detect mode from Items StringValue
 local itemsValue = model:FindFirstChild("Items")
 local mode = (itemsValue and itemsValue:IsA("StringValue") and itemsValue.Value) or "Slasher"
 local modeData = ATTACHMENT_MODES[mode]
-
 if not modeData then
 	warn("❌ Unknown Items mode:", mode)
 	model:Destroy()
 	return
 end
 
--- Helper to find a MeshPart in model
+-- Helper to find model parts
 local function findModelPart(name)
-	for _, obj in ipairs(model:GetDescendants()) do
-		if obj:IsA("MeshPart") and obj.Name == name then
+	for _, obj in pairs(model:GetDescendants()) do
+		if obj:IsA("BasePart") and obj.Name == name then
 			return obj
 		end
 	end
 	return nil
 end
 
--- Apply mesh + texture from model to character parts
-for i, charName in ipairs(modeData.charParts) do
-	local success, err = pcall(function()
-		local charPart = Character:FindFirstChild(charName)
-		local modelPart = findModelPart(modeData.modelParts[i])
-
-		if charPart and modelPart then
-			if charPart:IsA("MeshPart") then
-				charPart.MeshId = modelPart.MeshId
-				charPart.TextureID = modelPart.TextureID
-				charPart.Transparency = 0
-				print("✅ Applied Mesh + Texture to:", charPart.Name)
-			else
-				warn("⚠️", charName, "is not a MeshPart, skipping mesh copy.")
-			end
-		else
-			if not charPart then
-				warn("⚠️ Missing character part:", charName)
-			end
-			if not modelPart then
-				warn("⚠️ Missing model part:", modeData.modelParts[i])
-			end
-		end
-	end)
-
-	if not success then
-		warn("⚠️ Error while applying mesh for", charName, ":", err)
+-- Make model parts physics-safe
+for _, obj in pairs(model:GetDescendants()) do
+	if obj:IsA("BasePart") then
+		obj.CanCollide = false
+		obj.CanTouch = false
+		obj.CanQuery = false
+		obj.Massless = true
+		obj.Anchored = false
 	end
 end
 
--- Clean up safely
-pcall(function()
-	model:Destroy()
+-- Store references to base parts that need looping transparency
+local baseParts = {}
+
+-- Attach and weld model parts to character parts
+for i, charName in ipairs(modeData.charParts) do
+	local charPart = Character:FindFirstChild(charName)
+	local modelPart = findModelPart(modeData.modelParts[i])
+
+	if charPart and modelPart then
+		-- Add to base parts list for transparency loop
+		table.insert(baseParts, charPart)
+
+		-- Weld model part to the base part
+		modelPart.CFrame = charPart.CFrame
+		modelPart.Parent = charPart
+		CreateWeld(charPart, modelPart)
+
+		-- Make model part fully visible
+		modelPart.Transparency = 0
+		for _, desc in ipairs(modelPart:GetDescendants()) do
+			if desc:IsA("BasePart") then
+				desc.Transparency = 0
+			end
+		end
+
+		print("✅ Welded:", modelPart.Name, "→", charPart.Name)
+	else
+		if not charPart then warn("⚠️ Missing character part:", charName) end
+		if not modelPart then warn("⚠️ Missing model part:", modeData.modelParts[i]) end
+	end
+end
+
+-- Loop to keep base parts transparent until they are destroyed
+RunService.Heartbeat:Connect(function()
+	for _, part in ipairs(baseParts) do
+		if part and part.Parent then
+			part.Transparency = 1
+		end
+	end
 end)
 
-print("✨ Mesh application complete. Mode:", mode)
+-- Clean up model container
+model:Destroy()
+print("✨ Welds complete. Base parts looped to stay transparent.")
 
    end,
 })
