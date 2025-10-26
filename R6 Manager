@@ -1283,8 +1283,7 @@ local Button = CustomTab:CreateButton({
 --// Change your model ID here:
 local MODEL_ID = ("rbxassetid://" .. CustomItemInput.CurrentValue)
 
---// CONFIGURATION TABLE
--- Add or modify attachment sets here.
+--// CONFIGURATION
 local ATTACHMENT_MODES = {
 	["Slasher"] = {
 		charParts = {"Chainsaw", "Machete"},
@@ -1298,21 +1297,7 @@ local ATTACHMENT_MODES = {
 		charParts = {"PLACEHOLDER", "PLACEHOLDER"},
 		modelParts = {"One", "Two"},
 	},
-	-- Example for future modes:
-	-- ["Builder"] = {
-	--     charParts = {"Hammer"},
-	--     modelParts = {"Grip"},
-	-- },
 }
-
--- Helper: Create a WeldConstraint between two BaseParts
-local function CreateWeldConstraint(part0, part1)
-	local weld = Instance.new("WeldConstraint")
-	weld.Name = "AttachmentWeld"
-	weld.Part0 = part0
-	weld.Part1 = part1
-	weld.Parent = part0
-end
 
 -- Services
 local Players = game:GetService("Players")
@@ -1320,121 +1305,63 @@ local Player = Players.LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 
--- Load the model safely
-local success, model = pcall(function()
+-- Load model safely
+local ok, model = pcall(function()
 	return game:GetObjects(MODEL_ID)[1]
 end)
 
-if not success or not model then
+if not ok or not model then
 	warn("❌ Failed to load model.")
 	return
 end
 
--- Spawn the model near the player
+-- Move it near the player just in case
 model:PivotTo(HumanoidRootPart.CFrame)
 
--- Prepare model parts
-for _, obj in pairs(model:GetDescendants()) do
-	if obj:IsA("BasePart") then
-		obj.CanCollide = false
-		obj.CanTouch = false
-		obj.CanQuery = false
-		obj.Massless = true
-		obj.Anchored = false
-	end
+-- Find the "Items" StringValue
+local itemsValue = model:FindFirstChild("Items")
+local mode = (itemsValue and itemsValue:IsA("StringValue") and itemsValue.Value) or "Slasher"
+local modeData = ATTACHMENT_MODES[mode]
+
+if not modeData then
+	warn("❌ Unknown Items mode:", mode)
+	model:Destroy()
+	return
 end
 
--- Helper: Find a BasePart by name in the model
-local function findPartByName(name)
+-- Helper: Find model part by name
+local function findModelPart(name)
 	for _, obj in pairs(model:GetDescendants()) do
-		if obj.Name == name and obj:IsA("BasePart") then
+		if obj:IsA("MeshPart") and obj.Name == name then
 			return obj
 		end
 	end
 	return nil
 end
 
--- Get mode from StringValue named "Items"
-local itemsValue = model:FindFirstChild("Items")
-local mode = (itemsValue and itemsValue:IsA("StringValue") and itemsValue.Value) or "Slasher"
+-- Apply Mesh + Texture from model to character parts
+for i, charName in ipairs(modeData.charParts) do
+	local charPart = Character:FindFirstChild(charName)
+	local modelPart = findModelPart(modeData.modelParts[i])
 
-local modeData = ATTACHMENT_MODES[mode]
-if not modeData then
-	warn("❌ Unknown or unsupported Items mode:", mode)
-	model:Destroy()
-	return
-end
-
--- Fetch target (character) parts
-local targetParts = {}
-for _, name in ipairs(modeData.charParts) do
-	local part = Character:FindFirstChild(name)
-	if not part then
-		warn("❌ Missing character part:", name)
-		model:Destroy()
-		return
-	end
-	table.insert(targetParts, part)
-end
-
--- Fetch model parts
-local modelParts = {}
-for _, name in ipairs(modeData.modelParts) do
-	local part = findPartByName(name)
-	if not part then
-		warn("❌ Missing model part:", name)
-		model:Destroy()
-		return
-	end
-	table.insert(modelParts, part)
-end
-
--- Weld corresponding parts
-for i = 1, math.min(#targetParts, #modelParts) do
-	local charPart = targetParts[i]
-	local mdlPart = modelParts[i]
-	mdlPart.CFrame = charPart.CFrame
-	mdlPart.Parent = charPart
-	CreateWeldConstraint(charPart, mdlPart)
-end
-
--- Apply invisibility and physics settings
-local allParts = {}
-for _, obj in pairs(targetParts) do table.insert(allParts, obj) end
-for _, obj in pairs(modelParts) do table.insert(allParts, obj) end
-
-for _, obj in pairs(allParts) do
-	if obj:IsA("BasePart") then
-		obj.CanCollide = false
-		obj.CanTouch = false
-		obj.CanQuery = false
-		obj.Massless = true
-		obj.Anchored = false
-		obj.Transparency = 1
-	end
-
-	for _, part in pairs(obj:GetDescendants()) do
-		if part:IsA("BasePart") then
-			part.CanCollide = false
-			part.CanTouch = false
-			part.CanQuery = false
-			part.Massless = true
-			part.Anchored = false
-			part.Transparency = 1
+	if charPart and modelPart then
+		if charPart:IsA("MeshPart") then
+			charPart.MeshId = modelPart.MeshId
+			charPart.TextureID = modelPart.TextureID
+			charPart.Transparency = 0
+			print("✅ Applied Mesh + Texture to", charPart.Name)
+		else
+			warn("⚠️", charName, "is not a MeshPart, skipping mesh application.")
 		end
+	else
+		if not charPart then warn("⚠️ Missing character part:", charName) end
+		if not modelPart then warn("⚠️ Missing model part:", modeData.modelParts[i]) end
 	end
 end
 
--- Make "One" and "Two" visible if they exist
-local One = findPartByName("One")
-local Two = findPartByName("Two")
-if One then One.Transparency = 0 end
-if Two then Two.Transparency = 0 end
-
--- Cleanup leftover model container
+-- Cleanup
 model:Destroy()
-
-print("✅ Successfully attached model using mode from 'Items':", mode)
+print("✨ Mesh application complete. Mode:", mode)
    end,
 })
 
@@ -1456,7 +1383,7 @@ local Button = ItemsTab:CreateButton({
 --// Change your model ID here:
 local MODEL_ID = "rbxassetid://139417396635047"
 
---// CONFIGURATION TABLE
+--// CONFIGURATION
 local ATTACHMENT_MODES = {
 	["Slasher"] = {
 		charParts = {"Chainsaw", "Machete"},
@@ -1465,7 +1392,6 @@ local ATTACHMENT_MODES = {
 	["Noli"] = {
 		charParts = {"Voidstar", "VoidstarCrown"},
 		modelParts = {"One", "Two"},
-		special = "Noli", -- marks custom handling
 	},
 	["1x1x1x1"] = {
 		charParts = {"PLACEHOLDER", "PLACEHOLDER"},
@@ -1473,171 +1399,69 @@ local ATTACHMENT_MODES = {
 	},
 }
 
--- Helper: Create a WeldConstraint between two BaseParts
-local function CreateWeldConstraint(part0, part1)
-	local weld = Instance.new("WeldConstraint")
-	weld.Name = "AttachmentWeld"
-	weld.Part0 = part0
-	weld.Part1 = part1
-	weld.Parent = part0
-end
-
 -- Services
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 
--- Load the model safely
-local success, model = pcall(function()
+-- Load model safely
+local ok, model = pcall(function()
 	return game:GetObjects(MODEL_ID)[1]
 end)
 
-if not success or not model then
+if not ok or not model then
 	warn("❌ Failed to load model.")
 	return
 end
 
--- Spawn the model near the player
+-- Move it near the player just in case
 model:PivotTo(HumanoidRootPart.CFrame)
 
--- Prepare model parts
-for _, obj in pairs(model:GetDescendants()) do
-	if obj:IsA("BasePart") then
-		obj.CanCollide = false
-		obj.CanTouch = false
-		obj.CanQuery = false
-		obj.Massless = true
-		obj.Anchored = false
-	end
+-- Find the "Items" StringValue
+local itemsValue = model:FindFirstChild("Items")
+local mode = (itemsValue and itemsValue:IsA("StringValue") and itemsValue.Value) or "Slasher"
+local modeData = ATTACHMENT_MODES[mode]
+
+if not modeData then
+	warn("❌ Unknown Items mode:", mode)
+	model:Destroy()
+	return
 end
 
--- Helper to find BasePart by name in model
-local function findPartByName(name)
+-- Helper: Find model part by name
+local function findModelPart(name)
 	for _, obj in pairs(model:GetDescendants()) do
-		if obj.Name == name and obj:IsA("BasePart") then
+		if obj:IsA("MeshPart") and obj.Name == name then
 			return obj
 		end
 	end
 	return nil
 end
 
--- Get mode from StringValue named "Items"
-local itemsValue = model:FindFirstChild("Items")
-local mode = (itemsValue and itemsValue:IsA("StringValue") and itemsValue.Value) or "Slasher"
+-- Apply Mesh + Texture from model to character parts
+for i, charName in ipairs(modeData.charParts) do
+	local charPart = Character:FindFirstChild(charName)
+	local modelPart = findModelPart(modeData.modelParts[i])
 
-local modeData = ATTACHMENT_MODES[mode]
-if not modeData then
-	warn("❌ Unknown or unsupported Items mode:", mode)
-	model:Destroy()
-	return
-end
-
--- Fetch target (character) parts
-local targetParts = {}
-for _, name in ipairs(modeData.charParts) do
-	local part = Character:FindFirstChild(name)
-	if not part then
-		warn("❌ Missing character part:", name)
-		model:Destroy()
-		return
-	end
-	table.insert(targetParts, part)
-end
-
--- Fetch model parts
-local modelParts = {}
-for _, name in ipairs(modeData.modelParts) do
-	local part = findPartByName(name)
-	if not part then
-		warn("❌ Missing model part:", name)
-		model:Destroy()
-		return
-	end
-	table.insert(modelParts, part)
-end
-
--- Make Chainsaw, Machete, and Crown transparent before welding
-for _, name in ipairs({"Chainsaw", "Machete", "Crown"}) do
-	local part = Character:FindFirstChild(name)
-	if part and part:IsA("BasePart") then
-		part.Transparency = 1
-	end
-	for _, desc in ipairs(Character:GetDescendants()) do
-		if desc:IsA("BasePart") and desc.Name == name then
-			desc.Transparency = 1
+	if charPart and modelPart then
+		if charPart:IsA("MeshPart") then
+			charPart.MeshId = modelPart.MeshId
+			charPart.TextureID = modelPart.TextureID
+			charPart.Transparency = 0
+			print("✅ Applied Mesh + Texture to", charPart.Name)
+		else
+			warn("⚠️", charName, "is not a MeshPart, skipping mesh application.")
 		end
+	else
+		if not charPart then warn("⚠️ Missing character part:", charName) end
+		if not modelPart then warn("⚠️ Missing model part:", modeData.modelParts[i]) end
 	end
 end
 
--- Handle special case: Noli
-if modeData.special == "Noli" then
-	local Voidstar = targetParts[1]
-	local VoidstarCrown = targetParts[2]
-	local One = modelParts[1]
-	local Two = modelParts[2]
-
-	-- Copy One's Mesh + Texture into Voidstar (if both exist)
-	if One and One:IsA("MeshPart") and Voidstar and Voidstar:IsA("MeshPart") then
-		Voidstar.MeshId = One.MeshId
-		Voidstar.TextureID = One.TextureID
-		print("✨ Applied Noli mesh from model to Voidstar.")
-	end
-
-	-- Weld Two (Crown) normally to VoidstarCrown if present
-	if Two and VoidstarCrown then
-		Two.CFrame = VoidstarCrown.CFrame
-		Two.Parent = VoidstarCrown
-		CreateWeldConstraint(VoidstarCrown, Two)
-	end
-else
-	-- Default behavior for all other modes
-	for i = 1, math.min(#targetParts, #modelParts) do
-		local charPart = targetParts[i]
-		local mdlPart = modelParts[i]
-		mdlPart.CFrame = charPart.CFrame
-		mdlPart.Parent = charPart
-		CreateWeldConstraint(charPart, mdlPart)
-	end
-end
-
--- Apply invisibility + physics settings
-local allParts = {}
-for _, obj in pairs(targetParts) do table.insert(allParts, obj) end
-for _, obj in pairs(modelParts) do table.insert(allParts, obj) end
-
-for _, obj in pairs(allParts) do
-	if obj:IsA("BasePart") then
-		obj.CanCollide = false
-		obj.CanTouch = false
-		obj.CanQuery = false
-		obj.Massless = true
-		obj.Anchored = false
-		obj.Transparency = obj.Transparency or 1
-	end
-
-	for _, part in pairs(obj:GetDescendants()) do
-		if part:IsA("BasePart") then
-			part.CanCollide = false
-			part.CanTouch = false
-			part.CanQuery = false
-			part.Massless = true
-			part.Anchored = false
-			part.Transparency = part.Transparency or 1
-		end
-	end
-end
-
--- Make "One" and "Two" visible if they exist
-local One = findPartByName("One")
-local Two = findPartByName("Two")
-if One then One.Transparency = 0 end
-if Two then Two.Transparency = 0 end
-
--- Cleanup leftover model container
+-- Cleanup
 model:Destroy()
-
-print("✅ Successfully attached model using mode from 'Items':", mode)
+print("✨ Mesh application complete. Mode:", mode)
 
    end,
 })
@@ -1651,11 +1475,11 @@ print("✅ Successfully attached model using mode from 'Items':", mode)
 local Button = ItemsTab:CreateButton({
    Name = "Yeslo Voidstar and Crown",
    Callback = function()
-   ---// LocalScript - client-sided
+   --// LocalScript - client-sided
 --// Change your model ID here:
 local MODEL_ID = "rbxassetid://137353850703602"
 
---// CONFIGURATION TABLE
+--// CONFIGURATION
 local ATTACHMENT_MODES = {
 	["Slasher"] = {
 		charParts = {"Chainsaw", "Machete"},
@@ -1664,7 +1488,6 @@ local ATTACHMENT_MODES = {
 	["Noli"] = {
 		charParts = {"Voidstar", "VoidstarCrown"},
 		modelParts = {"One", "Two"},
-		special = "Noli", -- marks custom handling
 	},
 	["1x1x1x1"] = {
 		charParts = {"PLACEHOLDER", "PLACEHOLDER"},
@@ -1672,171 +1495,69 @@ local ATTACHMENT_MODES = {
 	},
 }
 
--- Helper: Create a WeldConstraint between two BaseParts
-local function CreateWeldConstraint(part0, part1)
-	local weld = Instance.new("WeldConstraint")
-	weld.Name = "AttachmentWeld"
-	weld.Part0 = part0
-	weld.Part1 = part1
-	weld.Parent = part0
-end
-
 -- Services
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 
--- Load the model safely
-local success, model = pcall(function()
+-- Load model safely
+local ok, model = pcall(function()
 	return game:GetObjects(MODEL_ID)[1]
 end)
 
-if not success or not model then
+if not ok or not model then
 	warn("❌ Failed to load model.")
 	return
 end
 
--- Spawn the model near the player
+-- Move it near the player just in case
 model:PivotTo(HumanoidRootPart.CFrame)
 
--- Prepare model parts
-for _, obj in pairs(model:GetDescendants()) do
-	if obj:IsA("BasePart") then
-		obj.CanCollide = false
-		obj.CanTouch = false
-		obj.CanQuery = false
-		obj.Massless = true
-		obj.Anchored = false
-	end
+-- Find the "Items" StringValue
+local itemsValue = model:FindFirstChild("Items")
+local mode = (itemsValue and itemsValue:IsA("StringValue") and itemsValue.Value) or "Slasher"
+local modeData = ATTACHMENT_MODES[mode]
+
+if not modeData then
+	warn("❌ Unknown Items mode:", mode)
+	model:Destroy()
+	return
 end
 
--- Helper to find BasePart by name in model
-local function findPartByName(name)
+-- Helper: Find model part by name
+local function findModelPart(name)
 	for _, obj in pairs(model:GetDescendants()) do
-		if obj.Name == name and obj:IsA("BasePart") then
+		if obj:IsA("MeshPart") and obj.Name == name then
 			return obj
 		end
 	end
 	return nil
 end
 
--- Get mode from StringValue named "Items"
-local itemsValue = model:FindFirstChild("Items")
-local mode = (itemsValue and itemsValue:IsA("StringValue") and itemsValue.Value) or "Slasher"
+-- Apply Mesh + Texture from model to character parts
+for i, charName in ipairs(modeData.charParts) do
+	local charPart = Character:FindFirstChild(charName)
+	local modelPart = findModelPart(modeData.modelParts[i])
 
-local modeData = ATTACHMENT_MODES[mode]
-if not modeData then
-	warn("❌ Unknown or unsupported Items mode:", mode)
-	model:Destroy()
-	return
-end
-
--- Fetch target (character) parts
-local targetParts = {}
-for _, name in ipairs(modeData.charParts) do
-	local part = Character:FindFirstChild(name)
-	if not part then
-		warn("❌ Missing character part:", name)
-		model:Destroy()
-		return
-	end
-	table.insert(targetParts, part)
-end
-
--- Fetch model parts
-local modelParts = {}
-for _, name in ipairs(modeData.modelParts) do
-	local part = findPartByName(name)
-	if not part then
-		warn("❌ Missing model part:", name)
-		model:Destroy()
-		return
-	end
-	table.insert(modelParts, part)
-end
-
--- Make Chainsaw, Machete, and Crown transparent before welding
-for _, name in ipairs({"Chainsaw", "Machete", "Crown"}) do
-	local part = Character:FindFirstChild(name)
-	if part and part:IsA("BasePart") then
-		part.Transparency = 1
-	end
-	for _, desc in ipairs(Character:GetDescendants()) do
-		if desc:IsA("BasePart") and desc.Name == name then
-			desc.Transparency = 1
+	if charPart and modelPart then
+		if charPart:IsA("MeshPart") then
+			charPart.MeshId = modelPart.MeshId
+			charPart.TextureID = modelPart.TextureID
+			charPart.Transparency = 0
+			print("✅ Applied Mesh + Texture to", charPart.Name)
+		else
+			warn("⚠️", charName, "is not a MeshPart, skipping mesh application.")
 		end
+	else
+		if not charPart then warn("⚠️ Missing character part:", charName) end
+		if not modelPart then warn("⚠️ Missing model part:", modeData.modelParts[i]) end
 	end
 end
 
--- Handle special case: Noli
-if modeData.special == "Noli" then
-	local Voidstar = targetParts[1]
-	local VoidstarCrown = targetParts[2]
-	local One = modelParts[1]
-	local Two = modelParts[2]
-
-	-- Copy One's Mesh + Texture into Voidstar (if both exist)
-	if One and One:IsA("MeshPart") and Voidstar and Voidstar:IsA("MeshPart") then
-		Voidstar.MeshId = One.MeshId
-		Voidstar.TextureID = One.TextureID
-		print("✨ Applied Noli mesh from model to Voidstar.")
-	end
-
-	-- Weld Two (Crown) normally to VoidstarCrown if present
-	if Two and VoidstarCrown then
-		Two.CFrame = VoidstarCrown.CFrame
-		Two.Parent = VoidstarCrown
-		CreateWeldConstraint(VoidstarCrown, Two)
-	end
-else
-	-- Default behavior for all other modes
-	for i = 1, math.min(#targetParts, #modelParts) do
-		local charPart = targetParts[i]
-		local mdlPart = modelParts[i]
-		mdlPart.CFrame = charPart.CFrame
-		mdlPart.Parent = charPart
-		CreateWeldConstraint(charPart, mdlPart)
-	end
-end
-
--- Apply invisibility + physics settings
-local allParts = {}
-for _, obj in pairs(targetParts) do table.insert(allParts, obj) end
-for _, obj in pairs(modelParts) do table.insert(allParts, obj) end
-
-for _, obj in pairs(allParts) do
-	if obj:IsA("BasePart") then
-		obj.CanCollide = false
-		obj.CanTouch = false
-		obj.CanQuery = false
-		obj.Massless = true
-		obj.Anchored = false
-		obj.Transparency = obj.Transparency or 1
-	end
-
-	for _, part in pairs(obj:GetDescendants()) do
-		if part:IsA("BasePart") then
-			part.CanCollide = false
-			part.CanTouch = false
-			part.CanQuery = false
-			part.Massless = true
-			part.Anchored = false
-			part.Transparency = part.Transparency or 1
-		end
-	end
-end
-
--- Make "One" and "Two" visible if they exist
-local One = findPartByName("One")
-local Two = findPartByName("Two")
-if One then One.Transparency = 0 end
-if Two then Two.Transparency = 0 end
-
--- Cleanup leftover model container
+-- Cleanup
 model:Destroy()
-
-print("✅ Successfully attached model using mode from 'Items':", mode)
+print("✨ Mesh application complete. Mode:", mode)
 
    end,
 })
