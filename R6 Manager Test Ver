@@ -1775,6 +1775,6 @@ if Two then Two.Transparency = 0 end
 -- Cleanup leftover model container
 model:Destroy()
 
-print("✅ Successfully attached model using mode from 'Items':", model")
+print("✅ Successfully attached model using mode from 'Items':", "model")
    end,
 })
