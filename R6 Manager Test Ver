@@ -38,7 +38,13 @@ local MainWindow = Rayfield:CreateWindow({
 })
 
 
+
+
 local MainTab = MainWindow:CreateTab("Premade Skins")
+local ItemsTab = MainWindow:CreateTab("Premade Items/Weapons") -- Title, Image
+local CustomTab = MainWindow:CreateTab("Custom Model") -- Title, Image
+
+
 
 
 local Button = MainTab:CreateButton({
@@ -1034,10 +1040,6 @@ print("âœ… Morph applied successfully (Weld version, animation synced, colli
 
 
 
-
-local CustomTab = MainWindow:CreateTab("Custom Model") -- Title, Image
-
-
 local CustomSection = CustomTab:CreateSection("Custom Model")
 
 
@@ -1144,5 +1146,135 @@ end
 
 print("âœ… Morph applied successfully (Weld version, animation synced, collision-free).")
 
+   end,
+})
+
+
+
+local SlasherSection = ItemsTab:CreateSection("Slasher Machete and Chainsaw")
+
+
+
+
+
+local Button = ItemsTab:CreateButton({
+   Name = "67 Slasher Chainsaw and Machete",
+   Callback = function()
+   --// LocalScript - client-sided
+--// Change your model ID here:
+local MODEL_ID = "rbxassetid://139417396635047"
+
+-- Helper: Create a WeldConstraint between two BaseParts
+local function CreateWeldConstraint(part0, part1)
+	local weld = Instance.new("WeldConstraint")
+	weld.Name = "AttachmentWeld"
+	weld.Part0 = part0
+	weld.Part1 = part1
+	weld.Parent = part0
+end
+
+-- Services
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+
+-- Wait for Chainsaw and Machete (case-sensitive)
+local Chainsaw = Character:WaitForChild("Chainsaw")
+local Machete = Character:WaitForChild("Machete")
+
+-- Load the model safely
+local success, model = pcall(function()
+	return game:GetObjects(MODEL_ID)[1]
+end)
+
+if not success or not model then
+	warn("❌ Failed to load model.")
+	return
+end
+
+-- Spawn the model near the player (avoid void spawn)
+model:PivotTo(HumanoidRootPart.CFrame)
+
+-- Prepare all model parts
+for _, obj in pairs(model:GetDescendants()) do
+	if obj:IsA("BasePart") then
+		obj.CanCollide = false
+		obj.CanTouch = false
+		obj.CanQuery = false
+		obj.Massless = true
+		obj.Anchored = false
+	end
+end
+
+-- Locate "One" and "Two" (supports MeshParts + groups)
+local function findPartByName(name)
+	for _, obj in pairs(model:GetDescendants()) do
+		if obj.Name == name and obj:IsA("BasePart") then
+			return obj
+		end
+	end
+	return nil
+end
+
+local One = findPartByName("One")
+local Two = findPartByName("Two")
+
+if not (One and Two) then
+	warn("❌ Could not find parts named 'One' and 'Two' inside the model.")
+	for _, obj in pairs(model:GetDescendants()) do
+		if obj:IsA("BasePart") then
+			print("🔍 Found part:", obj:GetFullName())
+		end
+	end
+	return
+end
+
+-- Position One & Two exactly at Chainsaw and Machete
+One.CFrame = Chainsaw.CFrame
+Two.CFrame = Machete.CFrame
+
+-- Parent to their corresponding tools
+One.Parent = Chainsaw
+Two.Parent = Machete
+
+-- Create welds (Chainsaw ↔ One, Machete ↔ Two)
+CreateWeldConstraint(Chainsaw, One)
+CreateWeldConstraint(Machete, Two)
+
+-- Apply collision/visual settings again (ensure invisibility)
+local allParts = {Chainsaw, Machete, One, Two}
+
+for _, obj in pairs(allParts) do
+	-- Apply to the main part itself
+	if obj:IsA("BasePart") then
+		obj.CanCollide = false
+		obj.CanTouch = false
+		obj.CanQuery = false
+		obj.Massless = true
+		obj.Anchored = false
+		obj.Transparency = 1 -- fully invisible
+                One.Transparency = 0
+                Two.Transparency = 0
+	end
+
+	-- Apply to descendants
+	for _, part in pairs(obj:GetDescendants()) do
+		if part:IsA("BasePart") then
+			part.CanCollide = false
+			part.CanTouch = false
+			part.CanQuery = false
+			part.Massless = true
+			part.Anchored = false
+			part.Transparency = 1
+		end
+	end
+end
+
+
+-- Cleanup leftover model container
+model:Destroy()
+
+print("✅ 'One' and 'Two' attached to Chainsaw and Machete successfully (WeldConstraint + invisible).")
    end,
 })
