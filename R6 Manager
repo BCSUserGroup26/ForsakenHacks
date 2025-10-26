@@ -41,6 +41,10 @@ local MainWindow = Rayfield:CreateWindow({
 
 
 local MainTab = MainWindow:CreateTab("Premade Skins")
+local ItemsTab = MainWindow:CreateTab("Premade Items/Weapons") -- Title, Image
+local CustomTab = MainWindow:CreateTab("Custom Model") -- Title, Image
+
+
 
 
 local Button = MainTab:CreateButton({
@@ -979,6 +983,7 @@ for _, v in ipairs(model:GetDescendants()) do
 		v.Massless = true
 		v.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
 	end
+	
 end
 
 --// Get humanoid and animator
@@ -1139,7 +1144,7 @@ print("âœ… Morph applied successfully (Weld version, animation synced, colli
 
 
 
-local CustomTab = Window:CreateTab("Custom Model and Items") -- Title, Image
+
 local CustomSection = CustomTab:CreateSection("Custom Model")
 
 
@@ -1437,7 +1442,7 @@ print("✅ Successfully attached model using mode from 'Items':", mode)
 
 
 
-local ItemsTab = Window:CreateTab("Premade Items") -- Title, Image
+
 local SlasherSection = ItemsTab:CreateSection("Slasher Machete and Chainsaw")
 
 
@@ -1602,7 +1607,7 @@ if Two then Two.Transparency = 0 end
 -- Cleanup leftover model container
 model:Destroy()
 
-print("✅ Successfully attached model using mode from 'Items':", model")
+print("✅ Successfully attached model using mode from 'Items':", "model")
    end,
 })
 
@@ -1770,6 +1775,6 @@ if Two then Two.Transparency = 0 end
 -- Cleanup leftover model container
 model:Destroy()
 
-print("✅ Successfully attached model using mode from 'Items':", model")
+print("✅ Successfully attached model using mode from 'Items':", "model")
    end,
 })
