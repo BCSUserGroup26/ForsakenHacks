@@ -1,0 +1,1148 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local MainWindow = Rayfield:CreateWindow({
+   Name = "Forsaken Skin Hub",
+   Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
+   LoadingTitle = "Forsaken Skin Hub",
+   LoadingSubtitle = "by BCS",
+   ShowText = "Forsaken Skin Hub", -- for mobile users to unhide rayfield, change if you'd like
+   Theme = "AmberGlow", -- Check https://docs.sirius.menu/rayfield/configuration/themes
+
+   ToggleUIKeybind = "K", -- The keybind to toggle the UI visibility (string like "K" or Enum.KeyCode)
+
+   DisableRayfieldPrompts = false,
+   DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
+
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = nil, -- Create a custom folder for your hub/game
+      FileName = "FSkin Hub"
+   },
+
+   Discord = {
+      Enabled = false, -- Prompt the user to join your Discord server if their executor supports it
+      Invite = "noinvitelink", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ ABCD would be ABCD
+      RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+   },
+
+   KeySystem = false, -- Set this to true to use our key system
+   KeySettings = {
+      Title = "FOrsaken/Universal R6 Model/Skin Changer",
+      Subtitle = "Tutorial",
+      Note = "Key is continue in lower characters but to make custom models watch https://youtu.be/zHcbkukeVGc", -- Use this to tell the user how to get a key
+      FileName = "KeyMbappe", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
+      SaveKey = true, -- The user's key will be saved, but if you change the key, they will be unable to use your script
+      GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
+      Key = {"Hello"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
+   }
+})
+
+
+local MainTab = MainWindow:CreateTab("Premade Skins")
+
+
+local Button = MainTab:CreateButton({
+   Name = "KJ",
+   Callback = function()
+   --// Forsaken Morph Loader (Final Stable Mesh Version, Classic Weld Edition)
+--// Model ID: rbxassetid://114811939755612
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+
+--// Morph model asset
+local MODEL_ID = "rbxassetid://130841968435483"
+
+--// Remove any existing morphs
+if char:FindFirstChild("MorphOverlay") then
+	char.MorphOverlay:Destroy()
+end
+
+--// Hide original character visuals (transparency only)
+for _, v in ipairs(char:GetDescendants()) do
+	if v:IsA("BasePart") then
+		v.Transparency = 1
+	elseif v:IsA("Decal") then
+		v.Transparency = 1
+	end
+end
+
+--// Load morph safely
+local success, model = pcall(function()
+	return game:GetObjects(MODEL_ID)[1]
+end)
+
+if not success or not model then
+	warn("âš ï¸ Could not load morph model: " .. MODEL_ID)
+	return
+end
+
+model.Name = "MorphOverlay"
+model.Parent = char
+
+--// Disable collisions only on morph parts
+for _, v in ipairs(model:GetDescendants()) do
+	if v:IsA("BasePart") then
+		v.CanCollide = false
+		v.CanTouch = false
+		v.CanQuery = false
+		v.Massless = true
+		v.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
+	end
+end
+
+--// Get humanoid and animator
+local hum = char:FindFirstChildOfClass("Humanoid")
+local animator = hum and hum:FindFirstChildOfClass("Animator")
+
+--// Weld main body parts
+local weldParts = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}
+
+for _, partName in ipairs(weldParts) do
+	local newPart = model:FindFirstChild(partName, true)
+	local oldPart = char:FindFirstChild(partName)
+
+	if newPart and oldPart and newPart:IsA("BasePart") and oldPart:IsA("BasePart") then
+		newPart.Anchored = false
+		newPart.CFrame = oldPart.CFrame
+
+		local weld = Instance.new("Weld")
+		weld.Part0 = oldPart
+		weld.Part1 = newPart
+		weld.C0 = oldPart.CFrame:Inverse() * newPart.CFrame
+		weld.Parent = newPart
+	end
+end
+
+--// Handle extra meshes inside Head (if any)
+local head = model:FindFirstChild("Head", true)
+if head then
+	for _, child in ipairs(head:GetDescendants()) do
+		if child:IsA("BasePart") then
+			child.CanCollide = false
+			child.CanTouch = false
+			child.CanQuery = false
+			child.Massless = true
+		end
+	end
+end
+
+--// Sync animations
+if animator then
+	animator.Parent = hum
+end
+
+print("âœ… Morph applied successfully (Weld version, animation synced, collision-free).")
+
+   end,
+})
+
+
+local Button = MainTab:CreateButton({
+   Name = "Veeronica",
+   Callback = function()
+   --// Forsaken Morph Loader (Final Stable Mesh Version, Classic Weld Edition)
+--// Model ID: rbxassetid://114811939755612
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+
+--// Morph model asset
+local MODEL_ID = "rbxassetid://114811939755612"
+
+--// Remove any existing morphs
+if char:FindFirstChild("MorphOverlay") then
+	char.MorphOverlay:Destroy()
+end
+
+--// Hide original character visuals (transparency only)
+for _, v in ipairs(char:GetDescendants()) do
+	if v:IsA("BasePart") then
+		v.Transparency = 1
+	elseif v:IsA("Decal") then
+		v.Transparency = 1
+	end
+end
+
+--// Load morph safely
+local success, model = pcall(function()
+	return game:GetObjects(MODEL_ID)[1]
+end)
+
+if not success or not model then
+	warn("âš ï¸ Could not load morph model: " .. MODEL_ID)
+	return
+end
+
+model.Name = "MorphOverlay"
+model.Parent = char
+
+--// Disable collisions only on morph parts
+for _, v in ipairs(model:GetDescendants()) do
+	if v:IsA("BasePart") then
+		v.CanCollide = false
+		v.CanTouch = false
+		v.CanQuery = false
+		v.Massless = true
+		v.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
+	end
+end
+
+--// Get humanoid and animator
+local hum = char:FindFirstChildOfClass("Humanoid")
+local animator = hum and hum:FindFirstChildOfClass("Animator")
+
+--// Weld main body parts
+local weldParts = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}
+
+for _, partName in ipairs(weldParts) do
+	local newPart = model:FindFirstChild(partName, true)
+	local oldPart = char:FindFirstChild(partName)
+
+	if newPart and oldPart and newPart:IsA("BasePart") and oldPart:IsA("BasePart") then
+		newPart.Anchored = false
+		newPart.CFrame = oldPart.CFrame
+
+		local weld = Instance.new("Weld")
+		weld.Part0 = oldPart
+		weld.Part1 = newPart
+		weld.C0 = oldPart.CFrame:Inverse() * newPart.CFrame
+		weld.Parent = newPart
+	end
+end
+
+--// Handle extra meshes inside Head (if any)
+local head = model:FindFirstChild("Head", true)
+if head then
+	for _, child in ipairs(head:GetDescendants()) do
+		if child:IsA("BasePart") then
+			child.CanCollide = false
+			child.CanTouch = false
+			child.CanQuery = false
+			child.Massless = true
+		end
+	end
+end
+
+--// Sync animations
+if animator then
+	animator.Parent = hum
+end
+
+print("âœ… Morph applied successfully (Weld version, animation synced, collision-free).")
+   end,
+})
+
+
+local Button = MainTab:CreateButton({
+   Name = "Noli",
+   Callback = function()
+   --// Forsaken Morph Loader (Final Stable Mesh Version, Classic Weld Edition)
+--// Model ID: rbxassetid://114811939755612
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+
+--// Morph model asset
+local MODEL_ID = "rbxassetid://83685503729863"
+
+--// Remove any existing morphs
+if char:FindFirstChild("MorphOverlay") then
+	char.MorphOverlay:Destroy()
+end
+
+--// Hide original character visuals (transparency only)
+for _, v in ipairs(char:GetDescendants()) do
+	if v:IsA("BasePart") then
+		v.Transparency = 1
+	elseif v:IsA("Decal") then
+		v.Transparency = 1
+	end
+end
+
+--// Load morph safely
+local success, model = pcall(function()
+	return game:GetObjects(MODEL_ID)[1]
+end)
+
+if not success or not model then
+	warn("âš ï¸ Could not load morph model: " .. MODEL_ID)
+	return
+end
+
+model.Name = "MorphOverlay"
+model.Parent = char
+
+--// Disable collisions only on morph parts
+for _, v in ipairs(model:GetDescendants()) do
+	if v:IsA("BasePart") then
+		v.CanCollide = false
+		v.CanTouch = false
+		v.CanQuery = false
+		v.Massless = true
+		v.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
+	end
+end
+
+--// Get humanoid and animator
+local hum = char:FindFirstChildOfClass("Humanoid")
+local animator = hum and hum:FindFirstChildOfClass("Animator")
+
+--// Weld main body parts
+local weldParts = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}
+
+for _, partName in ipairs(weldParts) do
+	local newPart = model:FindFirstChild(partName, true)
+	local oldPart = char:FindFirstChild(partName)
+
+	if newPart and oldPart and newPart:IsA("BasePart") and oldPart:IsA("BasePart") then
+		newPart.Anchored = false
+		newPart.CFrame = oldPart.CFrame
+
+		local weld = Instance.new("Weld")
+		weld.Part0 = oldPart
+		weld.Part1 = newPart
+		weld.C0 = oldPart.CFrame:Inverse() * newPart.CFrame
+		weld.Parent = newPart
+	end
+end
+
+--// Handle extra meshes inside Head (if any)
+local head = model:FindFirstChild("Head", true)
+if head then
+	for _, child in ipairs(head:GetDescendants()) do
+		if child:IsA("BasePart") then
+			child.CanCollide = false
+			child.CanTouch = false
+			child.CanQuery = false
+			child.Massless = true
+		end
+	end
+end
+
+--// Sync animations
+if animator then
+	animator.Parent = hum
+end
+
+print("âœ… Morph applied successfully (Weld version, animation synced, collision-free).")
+
+   end,
+})
+
+
+local Button = MainTab:CreateButton({
+   Name = "C00lkidd",
+   Callback = function()
+   --// Forsaken Morph Loader (Final Stable Mesh Version, Classic Weld Edition)
+--// Model ID: rbxassetid://114811939755612
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+
+--// Morph model asset
+local MODEL_ID = "rbxassetid://102799527809391"
+
+--// Remove any existing morphs
+if char:FindFirstChild("MorphOverlay") then
+	char.MorphOverlay:Destroy()
+end
+
+--// Hide original character visuals (transparency only)
+for _, v in ipairs(char:GetDescendants()) do
+	if v:IsA("BasePart") then
+		v.Transparency = 1
+	elseif v:IsA("Decal") then
+		v.Transparency = 1
+	end
+end
+
+--// Load morph safely
+local success, model = pcall(function()
+	return game:GetObjects(MODEL_ID)[1]
+end)
+
+if not success or not model then
+	warn("âš ï¸ Could not load morph model: " .. MODEL_ID)
+	return
+end
+
+model.Name = "MorphOverlay"
+model.Parent = char
+
+--// Disable collisions only on morph parts
+for _, v in ipairs(model:GetDescendants()) do
+	if v:IsA("BasePart") then
+		v.CanCollide = false
+		v.CanTouch = false
+		v.CanQuery = false
+		v.Massless = true
+		v.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
+	end
+end
+
+--// Get humanoid and animator
+local hum = char:FindFirstChildOfClass("Humanoid")
+local animator = hum and hum:FindFirstChildOfClass("Animator")
+
+--// Weld main body parts
+local weldParts = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}
+
+for _, partName in ipairs(weldParts) do
+	local newPart = model:FindFirstChild(partName, true)
+	local oldPart = char:FindFirstChild(partName)
+
+	if newPart and oldPart and newPart:IsA("BasePart") and oldPart:IsA("BasePart") then
+		newPart.Anchored = false
+		newPart.CFrame = oldPart.CFrame
+
+		local weld = Instance.new("Weld")
+		weld.Part0 = oldPart
+		weld.Part1 = newPart
+		weld.C0 = oldPart.CFrame:Inverse() * newPart.CFrame
+		weld.Parent = newPart
+	end
+end
+
+--// Handle extra meshes inside Head (if any)
+local head = model:FindFirstChild("Head", true)
+if head then
+	for _, child in ipairs(head:GetDescendants()) do
+		if child:IsA("BasePart") then
+			child.CanCollide = false
+			child.CanTouch = false
+			child.CanQuery = false
+			child.Massless = true
+		end
+	end
+end
+
+--// Sync animations
+if animator then
+	animator.Parent = hum
+end
+
+print("âœ… Morph applied successfully (Weld version, animation synced, collision-free).")
+
+   end,
+})
+
+
+local Button = MainTab:CreateButton({
+   Name = "Old Noli",
+   Callback = function()
+   --// Forsaken Morph Loader (Final Stable Mesh Version, Classic Weld Edition)
+--// Model ID: rbxassetid://114811939755612
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+
+--// Morph model asset
+local MODEL_ID = "rbxassetid://83707814406417"
+
+--// Remove any existing morphs
+if char:FindFirstChild("MorphOverlay") then
+	char.MorphOverlay:Destroy()
+end
+
+--// Hide original character visuals (transparency only)
+for _, v in ipairs(char:GetDescendants()) do
+	if v:IsA("BasePart") then
+		v.Transparency = 1
+	elseif v:IsA("Decal") then
+		v.Transparency = 1
+	end
+end
+
+--// Load morph safely
+local success, model = pcall(function()
+	return game:GetObjects(MODEL_ID)[1]
+end)
+
+if not success or not model then
+	warn("âš ï¸ Could not load morph model: " .. MODEL_ID)
+	return
+end
+
+model.Name = "MorphOverlay"
+model.Parent = char
+
+--// Disable collisions only on morph parts
+for _, v in ipairs(model:GetDescendants()) do
+	if v:IsA("BasePart") then
+		v.CanCollide = false
+		v.CanTouch = false
+		v.CanQuery = false
+		v.Massless = true
+		v.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
+	end
+end
+
+--// Get humanoid and animator
+local hum = char:FindFirstChildOfClass("Humanoid")
+local animator = hum and hum:FindFirstChildOfClass("Animator")
+
+--// Weld main body parts
+local weldParts = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}
+
+for _, partName in ipairs(weldParts) do
+	local newPart = model:FindFirstChild(partName, true)
+	local oldPart = char:FindFirstChild(partName)
+
+	if newPart and oldPart and newPart:IsA("BasePart") and oldPart:IsA("BasePart") then
+		newPart.Anchored = false
+		newPart.CFrame = oldPart.CFrame
+
+		local weld = Instance.new("Weld")
+		weld.Part0 = oldPart
+		weld.Part1 = newPart
+		weld.C0 = oldPart.CFrame:Inverse() * newPart.CFrame
+		weld.Parent = newPart
+	end
+end
+
+--// Handle extra meshes inside Head (if any)
+local head = model:FindFirstChild("Head", true)
+if head then
+	for _, child in ipairs(head:GetDescendants()) do
+		if child:IsA("BasePart") then
+			child.CanCollide = false
+			child.CanTouch = false
+			child.CanQuery = false
+			child.Massless = true
+		end
+	end
+end
+
+--// Sync animations
+if animator then
+	animator.Parent = hum
+end
+
+print("âœ… Morph applied successfully (Weld version, animation synced, collision-free).")
+
+   end,
+})
+
+
+local Button = MainTab:CreateButton({
+   Name = "MS3 Guest 1337",
+   Callback = function()
+   --// Forsaken Morph Loader (Final Stable Mesh Version, Classic Weld Edition)
+--// Model ID: rbxassetid://114811939755612
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+
+--// Morph model asset
+local MODEL_ID = "rbxassetid://91317685801943"
+
+--// Remove any existing morphs
+if char:FindFirstChild("MorphOverlay") then
+	char.MorphOverlay:Destroy()
+end
+
+--// Hide original character visuals (transparency only)
+for _, v in ipairs(char:GetDescendants()) do
+	if v:IsA("BasePart") then
+		v.Transparency = 1
+	elseif v:IsA("Decal") then
+		v.Transparency = 1
+	end
+end
+
+--// Load morph safely
+local success, model = pcall(function()
+	return game:GetObjects(MODEL_ID)[1]
+end)
+
+if not success or not model then
+	warn("âš ï¸ Could not load morph model: " .. MODEL_ID)
+	return
+end
+
+model.Name = "MorphOverlay"
+model.Parent = char
+
+--// Disable collisions only on morph parts
+for _, v in ipairs(model:GetDescendants()) do
+	if v:IsA("BasePart") then
+		v.CanCollide = false
+		v.CanTouch = false
+		v.CanQuery = false
+		v.Massless = true
+		v.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
+	end
+end
+
+--// Get humanoid and animator
+local hum = char:FindFirstChildOfClass("Humanoid")
+local animator = hum and hum:FindFirstChildOfClass("Animator")
+
+--// Weld main body parts
+local weldParts = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}
+
+for _, partName in ipairs(weldParts) do
+	local newPart = model:FindFirstChild(partName, true)
+	local oldPart = char:FindFirstChild(partName)
+
+	if newPart and oldPart and newPart:IsA("BasePart") and oldPart:IsA("BasePart") then
+		newPart.Anchored = false
+		newPart.CFrame = oldPart.CFrame
+
+		local weld = Instance.new("Weld")
+		weld.Part0 = oldPart
+		weld.Part1 = newPart
+		weld.C0 = oldPart.CFrame:Inverse() * newPart.CFrame
+		weld.Parent = newPart
+	end
+end
+
+--// Handle extra meshes inside Head (if any)
+local head = model:FindFirstChild("Head", true)
+if head then
+	for _, child in ipairs(head:GetDescendants()) do
+		if child:IsA("BasePart") then
+			child.CanCollide = false
+			child.CanTouch = false
+			child.CanQuery = false
+			child.Massless = true
+		end
+	end
+end
+
+--// Sync animations
+if animator then
+	animator.Parent = hum
+end
+
+print("âœ… Morph applied successfully (Weld version, animation synced, collision-free).")
+
+   end,
+})
+
+
+
+
+local Button = MainTab:CreateButton({
+   Name = "Squid Game Gaurd",
+   Callback = function()
+   --// Forsaken Morph Loader (Final Stable Mesh Version, Classic Weld Edition)
+--// Model ID: rbxassetid://114811939755612
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+
+--// Morph model asset
+local MODEL_ID = "rbxassetid://81040214366473"
+
+--// Remove any existing morphs
+if char:FindFirstChild("MorphOverlay") then
+	char.MorphOverlay:Destroy()
+end
+
+--// Hide original character visuals (transparency only)
+for _, v in ipairs(char:GetDescendants()) do
+	if v:IsA("BasePart") then
+		v.Transparency = 1
+	elseif v:IsA("Decal") then
+		v.Transparency = 1
+	end
+end
+
+--// Load morph safely
+local success, model = pcall(function()
+	return game:GetObjects(MODEL_ID)[1]
+end)
+
+if not success or not model then
+	warn("âš ï¸ Could not load morph model: " .. MODEL_ID)
+	return
+end
+
+model.Name = "MorphOverlay"
+model.Parent = char
+
+--// Disable collisions only on morph parts
+for _, v in ipairs(model:GetDescendants()) do
+	if v:IsA("BasePart") then
+		v.CanCollide = false
+		v.CanTouch = false
+		v.CanQuery = false
+		v.Massless = true
+		v.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
+	end
+end
+
+--// Get humanoid and animator
+local hum = char:FindFirstChildOfClass("Humanoid")
+local animator = hum and hum:FindFirstChildOfClass("Animator")
+
+--// Weld main body parts
+local weldParts = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}
+
+for _, partName in ipairs(weldParts) do
+	local newPart = model:FindFirstChild(partName, true)
+	local oldPart = char:FindFirstChild(partName)
+
+	if newPart and oldPart and newPart:IsA("BasePart") and oldPart:IsA("BasePart") then
+		newPart.Anchored = false
+		newPart.CFrame = oldPart.CFrame
+
+		local weld = Instance.new("Weld")
+		weld.Part0 = oldPart
+		weld.Part1 = newPart
+		weld.C0 = oldPart.CFrame:Inverse() * newPart.CFrame
+		weld.Parent = newPart
+	end
+end
+
+--// Handle extra meshes inside Head (if any)
+local head = model:FindFirstChild("Head", true)
+if head then
+	for _, child in ipairs(head:GetDescendants()) do
+		if child:IsA("BasePart") then
+			child.CanCollide = false
+			child.CanTouch = false
+			child.CanQuery = false
+			child.Massless = true
+		end
+	end
+end
+
+--// Sync animations
+if animator then
+	animator.Parent = hum
+end
+
+print("âœ… Morph applied successfully (Weld version, animation synced, collision-free).")
+
+   end,
+})
+
+
+
+
+local Button = MainTab:CreateButton({
+   Name = "Jason (Not Slasher)",
+   Callback = function()
+   --// Forsaken Morph Loader (Final Stable Mesh Version, Classic Weld Edition)
+--// Model ID: rbxassetid://114811939755612
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+
+--// Morph model asset
+local MODEL_ID = "rbxassetid://76056443707772"
+
+--// Remove any existing morphs
+if char:FindFirstChild("MorphOverlay") then
+	char.MorphOverlay:Destroy()
+end
+
+--// Hide original character visuals (transparency only)
+for _, v in ipairs(char:GetDescendants()) do
+	if v:IsA("BasePart") then
+		v.Transparency = 1
+	elseif v:IsA("Decal") then
+		v.Transparency = 1
+	end
+end
+
+--// Load morph safely
+local success, model = pcall(function()
+	return game:GetObjects(MODEL_ID)[1]
+end)
+
+if not success or not model then
+	warn("âš ï¸ Could not load morph model: " .. MODEL_ID)
+	return
+end
+
+model.Name = "MorphOverlay"
+model.Parent = char
+
+--// Disable collisions only on morph parts
+for _, v in ipairs(model:GetDescendants()) do
+	if v:IsA("BasePart") then
+		v.CanCollide = false
+		v.CanTouch = false
+		v.CanQuery = false
+		v.Massless = true
+		v.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
+	end
+end
+
+--// Get humanoid and animator
+local hum = char:FindFirstChildOfClass("Humanoid")
+local animator = hum and hum:FindFirstChildOfClass("Animator")
+
+--// Weld main body parts
+local weldParts = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}
+
+for _, partName in ipairs(weldParts) do
+	local newPart = model:FindFirstChild(partName, true)
+	local oldPart = char:FindFirstChild(partName)
+
+	if newPart and oldPart and newPart:IsA("BasePart") and oldPart:IsA("BasePart") then
+		newPart.Anchored = false
+		newPart.CFrame = oldPart.CFrame
+
+		local weld = Instance.new("Weld")
+		weld.Part0 = oldPart
+		weld.Part1 = newPart
+		weld.C0 = oldPart.CFrame:Inverse() * newPart.CFrame
+		weld.Parent = newPart
+	end
+end
+
+--// Handle extra meshes inside Head (if any)
+local head = model:FindFirstChild("Head", true)
+if head then
+	for _, child in ipairs(head:GetDescendants()) do
+		if child:IsA("BasePart") then
+			child.CanCollide = false
+			child.CanTouch = false
+			child.CanQuery = false
+			child.Massless = true
+		end
+	end
+end
+
+--// Sync animations
+if animator then
+	animator.Parent = hum
+end
+
+print("âœ… Morph applied successfully (Weld version, animation synced, collision-free).")
+
+   end,
+})
+
+
+local Button = MainTab:CreateButton({
+   Name = "67 Slasher",
+   Callback = function()
+   --// Forsaken Morph Loader (Final Stable Mesh Version, Classic Weld Edition)
+--// Model ID: rbxassetid://78724952767173
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+
+--// Morph model asset
+local MODEL_ID = "rbxassetid://76056443707772"
+
+--// Remove any existing morphs
+if char:FindFirstChild("MorphOverlay") then
+	char.MorphOverlay:Destroy()
+end
+
+--// Hide original character visuals (transparency only)
+for _, v in ipairs(char:GetDescendants()) do
+	if v:IsA("BasePart") then
+		v.Transparency = 1
+	elseif v:IsA("Decal") then
+		v.Transparency = 1
+	end
+end
+
+--// Load morph safely
+local success, model = pcall(function()
+	return game:GetObjects(MODEL_ID)[1]
+end)
+
+if not success or not model then
+	warn("âš ï¸ Could not load morph model: " .. MODEL_ID)
+	return
+end
+
+model.Name = "MorphOverlay"
+model.Parent = char
+
+--// Disable collisions only on morph parts
+for _, v in ipairs(model:GetDescendants()) do
+	if v:IsA("BasePart") then
+		v.CanCollide = false
+		v.CanTouch = false
+		v.CanQuery = false
+		v.Massless = true
+		v.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
+	end
+end
+
+--// Get humanoid and animator
+local hum = char:FindFirstChildOfClass("Humanoid")
+local animator = hum and hum:FindFirstChildOfClass("Animator")
+
+--// Weld main body parts
+local weldParts = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}
+
+for _, partName in ipairs(weldParts) do
+	local newPart = model:FindFirstChild(partName, true)
+	local oldPart = char:FindFirstChild(partName)
+
+	if newPart and oldPart and newPart:IsA("BasePart") and oldPart:IsA("BasePart") then
+		newPart.Anchored = false
+		newPart.CFrame = oldPart.CFrame
+
+		local weld = Instance.new("Weld")
+		weld.Part0 = oldPart
+		weld.Part1 = newPart
+		weld.C0 = oldPart.CFrame:Inverse() * newPart.CFrame
+		weld.Parent = newPart
+	end
+end
+
+--// Handle extra meshes inside Head (if any)
+local head = model:FindFirstChild("Head", true)
+if head then
+	for _, child in ipairs(head:GetDescendants()) do
+		if child:IsA("BasePart") then
+			child.CanCollide = false
+			child.CanTouch = false
+			child.CanQuery = false
+			child.Massless = true
+		end
+	end
+end
+
+--// Sync animations
+if animator then
+	animator.Parent = hum
+end
+
+print("âœ… Morph applied successfully (Weld version, animation synced, collision-free).")
+
+   end,
+})
+
+
+
+
+
+
+local SkinsSection = MainTab:CreateSection("Skin Ideas")
+
+
+
+
+local Button = MainTab:CreateButton({
+   Name = "JASONxJASONxJASONxJASON",
+   Callback = function()
+   --// Forsaken Morph Loader (Final Stable Mesh Version, Classic Weld Edition)
+--// Model ID: rbxassetid://114811939755612
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+
+--// Morph model asset
+local MODEL_ID = "rbxassetid://93690666816685"
+
+--// Remove any existing morphs
+if char:FindFirstChild("MorphOverlay") then
+	char.MorphOverlay:Destroy()
+end
+
+--// Hide original character visuals (transparency only)
+for _, v in ipairs(char:GetDescendants()) do
+	if v:IsA("BasePart") then
+		v.Transparency = 1
+	elseif v:IsA("Decal") then
+		v.Transparency = 1
+	end
+end
+
+--// Load morph safely
+local success, model = pcall(function()
+	return game:GetObjects(MODEL_ID)[1]
+end)
+
+if not success or not model then
+	warn("âš ï¸ Could not load morph model: " .. MODEL_ID)
+	return
+end
+
+model.Name = "MorphOverlay"
+model.Parent = char
+
+--// Disable collisions only on morph parts
+for _, v in ipairs(model:GetDescendants()) do
+	if v:IsA("BasePart") then
+		v.CanCollide = false
+		v.CanTouch = false
+		v.CanQuery = false
+		v.Massless = true
+		v.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
+	end
+end
+
+--// Get humanoid and animator
+local hum = char:FindFirstChildOfClass("Humanoid")
+local animator = hum and hum:FindFirstChildOfClass("Animator")
+
+--// Weld main body parts
+local weldParts = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}
+
+for _, partName in ipairs(weldParts) do
+	local newPart = model:FindFirstChild(partName, true)
+	local oldPart = char:FindFirstChild(partName)
+
+	if newPart and oldPart and newPart:IsA("BasePart") and oldPart:IsA("BasePart") then
+		newPart.Anchored = false
+		newPart.CFrame = oldPart.CFrame
+
+		local weld = Instance.new("Weld")
+		weld.Part0 = oldPart
+		weld.Part1 = newPart
+		weld.C0 = oldPart.CFrame:Inverse() * newPart.CFrame
+		weld.Parent = newPart
+	end
+end
+
+--// Handle extra meshes inside Head (if any)
+local head = model:FindFirstChild("Head", true)
+if head then
+	for _, child in ipairs(head:GetDescendants()) do
+		if child:IsA("BasePart") then
+			child.CanCollide = false
+			child.CanTouch = false
+			child.CanQuery = false
+			child.Massless = true
+		end
+	end
+end
+
+--// Sync animations
+if animator then
+	animator.Parent = hum
+end
+
+print("âœ… Morph applied successfully (Weld version, animation synced, collision-free).")
+
+   end,
+})
+
+
+
+
+local CustomTab = MainWindow:CreateTab("Custom Model") -- Title, Image
+
+
+local CustomSection = CustomTab:CreateSection("Custom Model")
+
+
+local CustomInput = CustomTab:CreateInput({
+   Name = "Custom Model ID",
+   CurrentValue = "",
+   PlaceholderText = "Input Model ID",
+   RemoveTextAfterFocusLost = false,
+   Flag = "Input1",
+   Callback = function(Text)
+   print("Value of CustomInput has been changed")
+   end,
+})
+
+
+local CustomButton = CustomTab:CreateButton({
+   Name = "Set Model",
+   Callback = function()
+   local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+
+--// Morph model asset
+local MODEL_ID = ("rbxassetid://" .. CustomInput.CurrentValue)
+
+--// Remove any existing morphs
+if char:FindFirstChild("MorphOverlay") then
+	char.MorphOverlay:Destroy()
+end
+
+--// Hide original character visuals (transparency only)
+for _, v in ipairs(char:GetDescendants()) do
+	if v:IsA("BasePart") then
+		v.Transparency = 1
+	elseif v:IsA("Decal") then
+		v.Transparency = 1
+	end
+end
+
+--// Load morph safely
+local success, model = pcall(function()
+	return game:GetObjects(MODEL_ID)[1]
+end)
+
+if not success or not model then
+	warn("âš ï¸ Could not load morph model: " .. MODEL_ID)
+	return
+end
+
+model.Name = "MorphOverlay"
+model.Parent = char
+
+--// Disable collisions only on morph parts
+for _, v in ipairs(model:GetDescendants()) do
+	if v:IsA("BasePart") then
+		v.CanCollide = false
+		v.CanTouch = false
+		v.CanQuery = false
+		v.Massless = true
+		v.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
+	end
+end
+
+--// Get humanoid and animator
+local hum = char:FindFirstChildOfClass("Humanoid")
+local animator = hum and hum:FindFirstChildOfClass("Animator")
+
+--// Weld main body parts
+local weldParts = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}
+
+for _, partName in ipairs(weldParts) do
+	local newPart = model:FindFirstChild(partName, true)
+	local oldPart = char:FindFirstChild(partName)
+
+	if newPart and oldPart and newPart:IsA("BasePart") and oldPart:IsA("BasePart") then
+		newPart.Anchored = false
+		newPart.CFrame = oldPart.CFrame
+
+		local weld = Instance.new("Weld")
+		weld.Part0 = oldPart
+		weld.Part1 = newPart
+		weld.C0 = oldPart.CFrame:Inverse() * newPart.CFrame
+		weld.Parent = newPart
+	end
+end
+
+--// Handle extra meshes inside Head (if any)
+local head = model:FindFirstChild("Head", true)
+if head then
+	for _, child in ipairs(head:GetDescendants()) do
+		if child:IsA("BasePart") then
+			child.CanCollide = false
+			child.CanTouch = false
+			child.CanQuery = false
+			child.Massless = true
+		end
+	end
+end
+
+--// Sync animations
+if animator then
+	animator.Parent = hum
+end
+
+print("âœ… Morph applied successfully (Weld version, animation synced, collision-free).")
+
+   end,
+})
