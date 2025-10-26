@@ -845,7 +845,7 @@ local player = Players.LocalPlayer
 local char = player.Character or player.CharacterAdded:Wait()
 
 --// Morph model asset
-local MODEL_ID = "rbxassetid://76056443707772"
+local MODEL_ID = "rbxassetid://78724952767173"
 
 --// Remove any existing morphs
 if char:FindFirstChild("MorphOverlay") then
