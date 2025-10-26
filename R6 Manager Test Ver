@@ -934,6 +934,106 @@ print("âœ… Morph applied successfully (Weld version, animation synced, colli
 
 
 
+local Button = MainTab:CreateButton({
+   Name = "Yeslo",
+   Callback = function()
+   --// Forsaken Morph Loader (Final Stable Mesh Version, Classic Weld Edition)
+--// Model ID: rbxassetid://87325125748010
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+
+--// Morph model asset
+local MODEL_ID = "rbxassetid://87325125748010"
+
+--// Remove any existing morphs
+if char:FindFirstChild("MorphOverlay") then
+	char.MorphOverlay:Destroy()
+end
+
+--// Hide original character visuals (transparency only)
+for _, v in ipairs(char:GetDescendants()) do
+	if v:IsA("BasePart") then
+		v.Transparency = 1
+	elseif v:IsA("Decal") then
+		v.Transparency = 1
+	end
+end
+
+--// Load morph safely
+local success, model = pcall(function()
+	return game:GetObjects(MODEL_ID)[1]
+end)
+
+if not success or not model then
+	warn("âš ï¸ Could not load morph model: " .. MODEL_ID)
+	return
+end
+
+model.Name = "MorphOverlay"
+model.Parent = char
+
+--// Disable collisions only on morph parts
+for _, v in ipairs(model:GetDescendants()) do
+	if v:IsA("BasePart") then
+		v.CanCollide = false
+		v.CanTouch = false
+		v.CanQuery = false
+		v.Massless = true
+		v.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
+	end
+end
+
+--// Get humanoid and animator
+local hum = char:FindFirstChildOfClass("Humanoid")
+local animator = hum and hum:FindFirstChildOfClass("Animator")
+
+--// Weld main body parts
+local weldParts = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}
+
+for _, partName in ipairs(weldParts) do
+	local newPart = model:FindFirstChild(partName, true)
+	local oldPart = char:FindFirstChild(partName)
+
+	if newPart and oldPart and newPart:IsA("BasePart") and oldPart:IsA("BasePart") then
+		newPart.Anchored = false
+		newPart.CFrame = oldPart.CFrame
+
+		local weld = Instance.new("Weld")
+		weld.Part0 = oldPart
+		weld.Part1 = newPart
+		weld.C0 = oldPart.CFrame:Inverse() * newPart.CFrame
+		weld.Parent = newPart
+	end
+end
+
+--// Handle extra meshes inside Head (if any)
+local head = model:FindFirstChild("Head", true)
+if head then
+	for _, child in ipairs(head:GetDescendants()) do
+		if child:IsA("BasePart") then
+			child.CanCollide = false
+			child.CanTouch = false
+			child.CanQuery = false
+			child.Massless = true
+		end
+	end
+end
+
+--// Sync animations
+if animator then
+	animator.Parent = hum
+end
+
+print("âœ… Morph applied successfully (Weld version, animation synced, collision-free).")
+
+   end,
+})
+
+
+
+
 
 
 local SkinsSection = MainTab:CreateSection("Skin Ideas")
@@ -1354,6 +1454,174 @@ local Button = ItemsTab:CreateButton({
    --// LocalScript - client-sided
 --// Change your model ID here:
 local MODEL_ID = "rbxassetid://139417396635047"
+
+--// CONFIGURATION TABLE
+-- Add or modify attachment sets here.
+local ATTACHMENT_MODES = {
+	["Slasher"] = {
+		charParts = {"Chainsaw", "Machete"},
+		modelParts = {"One", "Two"},
+	},
+	["Noli"] = {
+		charParts = {"Voidstar", "VoidstarCrown"},
+		modelParts = {"One", "Two"},
+	},
+	["1x1x1x1"] = {
+		charParts = {"PLACEHOLDER", "PLACEHOLDER"},
+		modelParts = {"One", "Two"},
+	},
+	-- Example for future modes:
+	-- ["Builder"] = {
+	--     charParts = {"Hammer"},
+	--     modelParts = {"Grip"},
+	-- },
+}
+
+-- Helper: Create a WeldConstraint between two BaseParts
+local function CreateWeldConstraint(part0, part1)
+	local weld = Instance.new("WeldConstraint")
+	weld.Name = "AttachmentWeld"
+	weld.Part0 = part0
+	weld.Part1 = part1
+	weld.Parent = part0
+end
+
+-- Services
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+
+-- Load the model safely
+local success, model = pcall(function()
+	return game:GetObjects(MODEL_ID)[1]
+end)
+
+if not success or not model then
+	warn("❌ Failed to load model.")
+	return
+end
+
+-- Spawn the model near the player
+model:PivotTo(HumanoidRootPart.CFrame)
+
+-- Prepare model parts
+for _, obj in pairs(model:GetDescendants()) do
+	if obj:IsA("BasePart") then
+		obj.CanCollide = false
+		obj.CanTouch = false
+		obj.CanQuery = false
+		obj.Massless = true
+		obj.Anchored = false
+	end
+end
+
+-- Helper: Find a BasePart by name in the model
+local function findPartByName(name)
+	for _, obj in pairs(model:GetDescendants()) do
+		if obj.Name == name and obj:IsA("BasePart") then
+			return obj
+		end
+	end
+	return nil
+end
+
+-- Get mode from StringValue named "Items"
+local itemsValue = model:FindFirstChild("Items")
+local mode = (itemsValue and itemsValue:IsA("StringValue") and itemsValue.Value) or "Slasher"
+
+local modeData = ATTACHMENT_MODES[mode]
+if not modeData then
+	warn("❌ Unknown or unsupported Items mode:", mode)
+	model:Destroy()
+	return
+end
+
+-- Fetch target (character) parts
+local targetParts = {}
+for _, name in ipairs(modeData.charParts) do
+	local part = Character:FindFirstChild(name)
+	if not part then
+		warn("❌ Missing character part:", name)
+		model:Destroy()
+		return
+	end
+	table.insert(targetParts, part)
+end
+
+-- Fetch model parts
+local modelParts = {}
+for _, name in ipairs(modeData.modelParts) do
+	local part = findPartByName(name)
+	if not part then
+		warn("❌ Missing model part:", name)
+		model:Destroy()
+		return
+	end
+	table.insert(modelParts, part)
+end
+
+-- Weld corresponding parts
+for i = 1, math.min(#targetParts, #modelParts) do
+	local charPart = targetParts[i]
+	local mdlPart = modelParts[i]
+	mdlPart.CFrame = charPart.CFrame
+	mdlPart.Parent = charPart
+	CreateWeldConstraint(charPart, mdlPart)
+end
+
+-- Apply invisibility and physics settings
+local allParts = {}
+for _, obj in pairs(targetParts) do table.insert(allParts, obj) end
+for _, obj in pairs(modelParts) do table.insert(allParts, obj) end
+
+for _, obj in pairs(allParts) do
+	if obj:IsA("BasePart") then
+		obj.CanCollide = false
+		obj.CanTouch = false
+		obj.CanQuery = false
+		obj.Massless = true
+		obj.Anchored = false
+		obj.Transparency = 1
+	end
+
+	for _, part in pairs(obj:GetDescendants()) do
+		if part:IsA("BasePart") then
+			part.CanCollide = false
+			part.CanTouch = false
+			part.CanQuery = false
+			part.Massless = true
+			part.Anchored = false
+			part.Transparency = 1
+		end
+	end
+end
+
+-- Make "One" and "Two" visible if they exist
+local One = findPartByName("One")
+local Two = findPartByName("Two")
+if One then One.Transparency = 0 end
+if Two then Two.Transparency = 0 end
+
+-- Cleanup leftover model container
+model:Destroy()
+
+print("✅ Successfully attached model using mode from 'Items':", model")
+   end,
+})
+
+
+
+
+
+
+
+local Button = ItemsTab:CreateButton({
+   Name = "Yeslo Voidstar and Crown",
+   Callback = function()
+   --// LocalScript - client-sided
+--// Change your model ID here:
+local MODEL_ID = "rbxassetid://137353850703602"
 
 --// CONFIGURATION TABLE
 -- Add or modify attachment sets here.
