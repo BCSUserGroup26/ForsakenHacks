@@ -1040,7 +1040,16 @@ print("âœ… Morph applied successfully (Weld version, animation synced, colli
 
 
 
+
+
+
+
 local CustomSection = CustomTab:CreateSection("Custom Model")
+
+
+
+
+
 
 
 local CustomInput = CustomTab:CreateInput({
@@ -1053,6 +1062,22 @@ local CustomInput = CustomTab:CreateInput({
    print("Value of CustomInput has been changed")
    end,
 })
+
+
+local CustomItemInput = CustomTab:CreateInput({
+   Name = "Custom Items ID",
+   CurrentValue = "",
+   PlaceholderText = "Input Model ID",
+   RemoveTextAfterFocusLost = false,
+   Flag = "Input1",
+   Callback = function(Text)
+   print("Value of CustomItemInput has been changed")
+   end,
+})
+
+
+
+
 
 
 local CustomButton = CustomTab:CreateButton({
@@ -1148,6 +1173,173 @@ print("âœ… Morph applied successfully (Weld version, animation synced, colli
 
    end,
 })
+
+
+local Button = CustomTab:CreateButton({
+   Name = "Set Items",
+   Callback = function()
+   --// LocalScript - client-sided
+--// Change your model ID here:
+local MODEL_ID = ("rbxassetid://" .. CustomItemInput.CurrentValue)
+
+--// CONFIGURATION TABLE
+-- Easily expand by adding new entries below
+local ATTACHMENT_MODES = {
+	["Slasher"] = {
+		charParts = {"Chainsaw", "Machete"},
+		modelParts = {"One", "Two"},
+	},
+	["Noli"] = {
+		charParts = {"Voidstar"},
+		modelParts = {"One"},
+	},
+	["1x1x1x1"] = {
+		charParts = {"PLACEHOLDER", "PLACEHOLDER"},
+		modelParts = {"One", "Two"},
+	},
+	-- Example of adding more:
+	-- ["Builder"] = {
+	--     charParts = {"Hammer"},
+	--     modelParts = {"Grip"},
+	-- },
+}
+
+-- Helper: Create a WeldConstraint between two BaseParts
+local function CreateWeldConstraint(part0, part1)
+	local weld = Instance.new("WeldConstraint")
+	weld.Name = "AttachmentWeld"
+	weld.Part0 = part0
+	weld.Part1 = part1
+	weld.Parent = part0
+end
+
+-- Services
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+
+-- Load model safely
+local success, model = pcall(function()
+	return game:GetObjects(MODEL_ID)[1]
+end)
+
+if not success or not model then
+	warn("❌ Failed to load model.")
+	return
+end
+
+-- Spawn model near player
+model:PivotTo(HumanoidRootPart.CFrame)
+
+-- Prepare model parts
+for _, obj in pairs(model:GetDescendants()) do
+	if obj:IsA("BasePart") then
+		obj.CanCollide = false
+		obj.CanTouch = false
+		obj.CanQuery = false
+		obj.Massless = true
+		obj.Anchored = false
+	end
+end
+
+-- Helper to find BasePart by name in model
+local function findPartByName(name)
+	for _, obj in pairs(model:GetDescendants()) do
+		if obj.Name == name and obj:IsA("BasePart") then
+			return obj
+		end
+	end
+	return nil
+end
+
+-- Get mode from StringValue named "Items"
+local itemsValue = model:FindFirstChild("Items")
+local mode = (itemsValue and itemsValue:IsA("StringValue") and itemsValue.Value) or "Slasher"
+
+local modeData = ATTACHMENT_MODES[mode]
+if not modeData then
+	warn("❌ Unknown or unsupported Items mode:", mode)
+	model:Destroy()
+	return
+end
+
+-- Fetch target parts from Character
+local targetParts = {}
+for _, name in ipairs(modeData.charParts) do
+	local part = Character:FindFirstChild(name)
+	if not part then
+		warn("❌ Missing character part:", name)
+		model:Destroy()
+		return
+	end
+	table.insert(targetParts, part)
+end
+
+-- Fetch model parts
+local modelParts = {}
+for _, name in ipairs(modeData.modelParts) do
+	local part = findPartByName(name)
+	if not part then
+		warn("❌ Missing model part:", name)
+		model:Destroy()
+		return
+	end
+	table.insert(modelParts, part)
+end
+
+-- Weld corresponding parts
+for i = 1, math.min(#targetParts, #modelParts) do
+	local charPart = targetParts[i]
+	local mdlPart = modelParts[i]
+
+	mdlPart.CFrame = charPart.CFrame
+	mdlPart.Parent = charPart
+	CreateWeldConstraint(charPart, mdlPart)
+end
+
+-- Apply invisibility + physics settings
+local allParts = {}
+for _, obj in pairs(targetParts) do table.insert(allParts, obj) end
+for _, obj in pairs(modelParts) do table.insert(allParts, obj) end
+
+for _, obj in pairs(allParts) do
+	if obj:IsA("BasePart") then
+		obj.CanCollide = false
+		obj.CanTouch = false
+		obj.CanQuery = false
+		obj.Massless = true
+		obj.Anchored = false
+		obj.Transparency = 1
+	end
+
+	for _, part in pairs(obj:GetDescendants()) do
+		if part:IsA("BasePart") then
+			part.CanCollide = false
+			part.CanTouch = false
+			part.CanQuery = false
+			part.Massless = true
+			part.Anchored = false
+			part.Transparency = 1
+		end
+	end
+end
+
+-- Make "One" and "Two" visible if they exist
+local One = findPartByName("One")
+local Two = findPartByName("Two")
+if One then One.Transparency = 0 end
+if Two then Two.Transparency = 0 end
+
+-- Cleanup leftover model container
+model:Destroy()
+
+print("✅ Successfully attached model using mode from 'Items':", mode)
+   end,
+})
+
+
+
 
 
 
