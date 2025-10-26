@@ -1,0 +1,132 @@
+--// Load Rayfield UI
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+--// Main Window Setup
+local MainWindow = Rayfield:CreateWindow({
+   Name = "Forsaken Skin Hub",
+   Icon = 0,
+   LoadingTitle = "Forsaken Skin Hub",
+   LoadingSubtitle = "by BCS",
+   ShowText = "Forsaken Skin Hub",
+   Theme = "AmberGlow",
+   ToggleUIKeybind = "K",
+   ConfigurationSaving = {
+      Enabled = true,
+      FileName = "FSkin Hub"
+   },
+   KeySystem = false,
+})
+
+--// Create Tab
+local MainTab = MainWindow:CreateTab("Premade Skins")
+
+------------------------------------------------------
+--// MS3 Guest Button (Morph + Animation Integration)
+------------------------------------------------------
+local GuestButton = MainTab:CreateButton({
+   Name = "MS3 Guest 1337",
+   Callback = function()
+
+      ------------------------------------------------
+      --// Morph Loader (Weld version, collision-free)
+      ------------------------------------------------
+      local Players = game:GetService("Players")
+      local player = Players.LocalPlayer
+      local char = player.Character or player.CharacterAdded:Wait()
+
+      local MODEL_ID = "rbxassetid://130841968435483" -- your MS3 Guest model ID
+
+      if char:FindFirstChild("MorphOverlay") then
+         char.MorphOverlay:Destroy()
+      end
+
+      for _, v in ipairs(char:GetDescendants()) do
+         if v:IsA("BasePart") then
+            v.Transparency = 1
+         elseif v:IsA("Decal") then
+            v.Transparency = 1
+         end
+      end
+
+      local success, model = pcall(function()
+         return game:GetObjects(MODEL_ID)[1]
+      end)
+
+      if not success or not model then
+         warn("⚠️ Could not load morph model: " .. MODEL_ID)
+         return
+      end
+
+      model.Name = "MorphOverlay"
+      model.Parent = char
+
+      for _, v in ipairs(model:GetDescendants()) do
+         if v:IsA("BasePart") then
+            v.CanCollide = false
+            v.CanTouch = false
+            v.CanQuery = false
+            v.Massless = true
+            v.CustomPhysicalProperties = PhysicalProperties.new(0,0,0,0,0)
+         end
+      end
+
+      local hum = char:FindFirstChildOfClass("Humanoid")
+      local animator = hum and hum:FindFirstChildOfClass("Animator")
+
+      local weldParts = {"Head","Torso","Left Arm","Right Arm","Left Leg","Right Leg"}
+
+      for _, partName in ipairs(weldParts) do
+         local newPart = model:FindFirstChild(partName, true)
+         local oldPart = char:FindFirstChild(partName)
+
+         if newPart and oldPart and newPart:IsA("BasePart") and oldPart:IsA("BasePart") then
+            newPart.Anchored = false
+            newPart.CFrame = oldPart.CFrame
+
+            local weld = Instance.new("Weld")
+            weld.Part0 = oldPart
+            weld.Part1 = newPart
+            weld.C0 = oldPart.CFrame:Inverse() * newPart.CFrame
+            weld.Parent = newPart
+         end
+      end
+
+      local head = model:FindFirstChild("Head", true)
+      if head then
+         for _, child in ipairs(head:GetDescendants()) do
+            if child:IsA("BasePart") then
+               child.CanCollide = false
+               child.CanTouch = false
+               child.CanQuery = false
+               child.Massless = true
+            end
+         end
+      end
+
+      if animator then
+         animator.Parent = hum
+      end
+
+      print("✅ Morph applied successfully (Guest1337).")
+
+      ------------------------------------------------
+      --// Animation Override for Guest1337
+      ------------------------------------------------
+      local success2, m4 = pcall(function()
+         return require(game:GetService("ReplicatedStorage").Assets.Survivors.Guest1337.Config)
+      end)
+
+      if success2 and m4 and m4.Animations then
+         m4.Animations.Block = "rbxassetid://96959123077498"
+         m4.Animations.ParryPunch = "rbxassetid://86096387000557"
+         print("🎬 Custom Guest1337 animations applied successfully.")
+      else
+         warn("⚠️ Could not apply animations (Guest1337 config not found).")
+      end
+
+   end,
+})
+
+------------------------------------------------------
+-- You can keep your other morph buttons below this
+------------------------------------------------------
