@@ -1164,6 +1164,29 @@ local Button = ItemsTab:CreateButton({
 --// Change your model ID here:
 local MODEL_ID = "rbxassetid://139417396635047"
 
+--// CONFIGURATION TABLE
+-- Define attachment modes here for easy expansion
+-- Each mode lists which Character parts and Model parts to weld in order
+local ATTACHMENT_MODES = {
+	["Slasher"] = {
+		charParts = {"Chainsaw", "Machete"},
+		modelParts = {"One", "Two"},
+	},
+	["Noli"] = {
+		charParts = {"Voidstar"},
+		modelParts = {"One"},
+	},
+	["1x1x1x1"] = {
+		charParts = {"PLACEHOLDER", "PLACEHOLDER"},
+		modelParts = {"One", "Two"},
+	},
+	-- You can easily add new modes like this:
+	-- ["Builder"] = {
+	--     charParts = {"Hammer"},
+	--     modelParts = {"Grip"},
+	-- },
+}
+
 -- Helper: Create a WeldConstraint between two BaseParts
 local function CreateWeldConstraint(part0, part1)
 	local weld = Instance.new("WeldConstraint")
@@ -1179,11 +1202,7 @@ local Player = Players.LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 
--- Wait for Chainsaw and Machete (case-sensitive)
-local Chainsaw = Character:WaitForChild("Chainsaw")
-local Machete = Character:WaitForChild("Machete")
-
--- Load the model safely
+-- Load model safely
 local success, model = pcall(function()
 	return game:GetObjects(MODEL_ID)[1]
 end)
@@ -1193,10 +1212,10 @@ if not success or not model then
 	return
 end
 
--- Spawn the model near the player (avoid void spawn)
+-- Spawn model near player
 model:PivotTo(HumanoidRootPart.CFrame)
 
--- Prepare all model parts
+-- Prep model parts
 for _, obj in pairs(model:GetDescendants()) do
 	if obj:IsA("BasePart") then
 		obj.CanCollide = false
@@ -1207,7 +1226,7 @@ for _, obj in pairs(model:GetDescendants()) do
 	end
 end
 
--- Locate "One" and "Two" (supports MeshParts + groups)
+-- Helper to find BasePart by name in model
 local function findPartByName(name)
 	for _, obj in pairs(model:GetDescendants()) do
 		if obj.Name == name and obj:IsA("BasePart") then
@@ -1217,48 +1236,65 @@ local function findPartByName(name)
 	return nil
 end
 
-local One = findPartByName("One")
-local Two = findPartByName("Two")
+-- Detect which mode to use from StringValue
+local modeValue = model:FindFirstChildWhichIsA("StringValue")
+local mode = modeValue and modeValue.Value or "Slasher"
+local modeData = ATTACHMENT_MODES[mode]
 
-if not (One and Two) then
-	warn("❌ Could not find parts named 'One' and 'Two' inside the model.")
-	for _, obj in pairs(model:GetDescendants()) do
-		if obj:IsA("BasePart") then
-			print("🔍 Found part:", obj:GetFullName())
-		end
-	end
+if not modeData then
+	warn("❌ Unknown attachment mode:", mode)
+	model:Destroy()
 	return
 end
 
--- Position One & Two exactly at Chainsaw and Machete
-One.CFrame = Chainsaw.CFrame
-Two.CFrame = Machete.CFrame
+-- Fetch parts based on mode config
+local targetParts = {}
+local modelParts = {}
 
--- Parent to their corresponding tools
-One.Parent = Chainsaw
-Two.Parent = Machete
+for _, name in ipairs(modeData.charParts) do
+	local part = Character:FindFirstChild(name)
+	if not part then
+		warn("❌ Missing character part:", name)
+		model:Destroy()
+		return
+	end
+	table.insert(targetParts, part)
+end
 
--- Create welds (Chainsaw ↔ One, Machete ↔ Two)
-CreateWeldConstraint(Chainsaw, One)
-CreateWeldConstraint(Machete, Two)
+for _, name in ipairs(modeData.modelParts) do
+	local part = findPartByName(name)
+	if not part then
+		warn("❌ Missing model part:", name)
+		model:Destroy()
+		return
+	end
+	table.insert(modelParts, part)
+end
 
--- Apply collision/visual settings again (ensure invisibility)
-local allParts = {Chainsaw, Machete, One, Two}
+-- Weld corresponding parts
+for i = 1, math.min(#targetParts, #modelParts) do
+	local charPart = targetParts[i]
+	local mdlPart = modelParts[i]
+	mdlPart.CFrame = charPart.CFrame
+	mdlPart.Parent = charPart
+	CreateWeldConstraint(charPart, mdlPart)
+end
+
+-- Apply invisibility and physics settings
+local allParts = {}
+for _, obj in pairs(targetParts) do table.insert(allParts, obj) end
+for _, obj in pairs(modelParts) do table.insert(allParts, obj) end
 
 for _, obj in pairs(allParts) do
-	-- Apply to the main part itself
 	if obj:IsA("BasePart") then
 		obj.CanCollide = false
 		obj.CanTouch = false
 		obj.CanQuery = false
 		obj.Massless = true
 		obj.Anchored = false
-		obj.Transparency = 1 -- fully invisible
-                One.Transparency = 0
-                Two.Transparency = 0
+		obj.Transparency = 1
 	end
 
-	-- Apply to descendants
 	for _, part in pairs(obj:GetDescendants()) do
 		if part:IsA("BasePart") then
 			part.CanCollide = false
@@ -1271,10 +1307,15 @@ for _, obj in pairs(allParts) do
 	end
 end
 
+-- Make "One" and "Two" visible if they exist
+local One = findPartByName("One")
+local Two = findPartByName("Two")
+if One then One.Transparency = 0 end
+if Two then Two.Transparency = 0 end
 
--- Cleanup leftover model container
+-- Cleanup leftover container
 model:Destroy()
 
-print("✅ 'One' and 'Two' attached to Chainsaw and Machete successfully (WeldConstraint + invisible).")
+print("✅ Successfully attached model using mode:", mode)
    end,
 })
