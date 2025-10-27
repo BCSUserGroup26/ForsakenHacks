@@ -46,6 +46,104 @@ local CustomTab = MainWindow:CreateTab("Custom Model") -- Title, Image
 
 
 
+local Button = MainTab:CreateButton({
+   Name = "JX1DX1 Noli",
+   Callback = function()
+   --// Forsaken Morph Loader (Final Stable Mesh Version, Classic Weld Edition)
+--// Model ID: rbxassetid://133147021648397
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+
+--// Morph model asset
+local MODEL_ID = "rbxassetid://133147021648397"
+
+--// Remove any existing morphs
+if char:FindFirstChild("MorphOverlay") then
+	char.MorphOverlay:Destroy()
+end
+
+--// Hide original character visuals (transparency only)
+for _, v in ipairs(char:GetDescendants()) do
+	if v:IsA("BasePart") then
+		v.Transparency = 1
+	elseif v:IsA("Decal") then
+		v.Transparency = 1
+	end
+end
+
+--// Load morph safely
+local success, model = pcall(function()
+	return game:GetObjects(MODEL_ID)[1]
+end)
+
+if not success or not model then
+	warn("âš ï¸ Could not load morph model: " .. MODEL_ID)
+	return
+end
+
+model.Name = "MorphOverlay"
+model.Parent = char
+
+--// Disable collisions only on morph parts
+for _, v in ipairs(model:GetDescendants()) do
+	if v:IsA("BasePart") then
+		v.CanCollide = false
+		v.CanTouch = false
+		v.CanQuery = false
+		v.Massless = true
+		v.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
+	end
+end
+
+--// Get humanoid and animator
+local hum = char:FindFirstChildOfClass("Humanoid")
+local animator = hum and hum:FindFirstChildOfClass("Animator")
+
+--// Weld main body parts
+local weldParts = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}
+
+for _, partName in ipairs(weldParts) do
+	local newPart = model:FindFirstChild(partName, true)
+	local oldPart = char:FindFirstChild(partName)
+
+	if newPart and oldPart and newPart:IsA("BasePart") and oldPart:IsA("BasePart") then
+		newPart.Anchored = false
+		newPart.CFrame = oldPart.CFrame
+
+		local weld = Instance.new("Weld")
+		weld.Part0 = oldPart
+		weld.Part1 = newPart
+		weld.C0 = oldPart.CFrame:Inverse() * newPart.CFrame
+		weld.Parent = newPart
+	end
+end
+
+--// Handle extra meshes inside Head (if any)
+local head = model:FindFirstChild("Head", true)
+if head then
+	for _, child in ipairs(head:GetDescendants()) do
+		if child:IsA("BasePart") then
+			child.CanCollide = false
+			child.CanTouch = false
+			child.CanQuery = false
+			child.Massless = true
+		end
+	end
+end
+
+--// Sync animations
+if animator then
+	animator.Parent = hum
+end
+
+print("âœ… Morph applied successfully (Weld version, animation synced, collision-free).")
+   end,
+})
+
+
+
 
 local Button = MainTab:CreateButton({
    Name = "KJ",
@@ -140,7 +238,6 @@ if animator then
 end
 
 print("âœ… Morph applied successfully (Weld version, animation synced, collision-free).")
-
    end,
 })
 
@@ -1527,6 +1624,124 @@ local Button = ItemsTab:CreateButton({
    Callback = function()
    -- LocalScript - client-sided
 local MODEL_ID = "rbxassetid://137353850703602"
+
+local ATTACHMENT_MODES = {
+	["Slasher"] = { charParts = {"Chainsaw", "Machete"}, modelParts = {"One", "Two"} },
+	["Noli"]    = { charParts = {"Voidstar", "VoidstarCrown"}, modelParts = {"One", "Two"} },
+	["1x1x1x1"] = { charParts = {"PLACEHOLDER", "PLACEHOLDER"}, modelParts = {"One", "Two"} },
+}
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+
+local function CreateWeld(part0, part1)
+	local weld = Instance.new("WeldConstraint")
+	weld.Part0 = part0
+	weld.Part1 = part1
+	weld.Parent = part0
+	return weld
+end
+
+-- Load model safely
+local ok, model = pcall(function()
+	return game:GetObjects(MODEL_ID)[1]
+end)
+if not ok or not model then
+	warn("❌ Failed to load model:", model)
+	return
+end
+model:PivotTo(HumanoidRootPart.CFrame)
+
+-- Detect mode from Items StringValue
+local itemsValue = model:FindFirstChild("Items")
+local mode = (itemsValue and itemsValue:IsA("StringValue") and itemsValue.Value) or "Slasher"
+local modeData = ATTACHMENT_MODES[mode]
+if not modeData then
+	warn("❌ Unknown Items mode:", mode)
+	model:Destroy()
+	return
+end
+
+-- Helper to find model parts
+local function findModelPart(name)
+	for _, obj in pairs(model:GetDescendants()) do
+		if obj:IsA("BasePart") and obj.Name == name then
+			return obj
+		end
+	end
+	return nil
+end
+
+-- Make model parts physics-safe
+for _, obj in pairs(model:GetDescendants()) do
+	if obj:IsA("BasePart") then
+		obj.CanCollide = false
+		obj.CanTouch = false
+		obj.CanQuery = false
+		obj.Massless = true
+		obj.Anchored = false
+	end
+end
+
+-- Store references to base parts that need looping transparency
+local baseParts = {}
+
+-- Attach and weld model parts to character parts
+for i, charName in ipairs(modeData.charParts) do
+	local charPart = Character:FindFirstChild(charName)
+	local modelPart = findModelPart(modeData.modelParts[i])
+
+	if charPart and modelPart then
+		-- Add to base parts list for transparency loop
+		table.insert(baseParts, charPart)
+
+		-- Weld model part to the base part
+		modelPart.CFrame = charPart.CFrame
+		modelPart.Parent = charPart
+		CreateWeld(charPart, modelPart)
+
+		-- Make model part fully visible
+		modelPart.Transparency = 0
+		for _, desc in ipairs(modelPart:GetDescendants()) do
+			if desc:IsA("BasePart") then
+				desc.Transparency = 0
+			end
+		end
+
+		print("✅ Welded:", modelPart.Name, "→", charPart.Name)
+	else
+		if not charPart then warn("⚠️ Missing character part:", charName) end
+		if not modelPart then warn("⚠️ Missing model part:", modeData.modelParts[i]) end
+	end
+end
+
+-- Loop to keep base parts transparent until they are destroyed
+RunService.Heartbeat:Connect(function()
+	for _, part in ipairs(baseParts) do
+		if part and part.Parent then
+			part.Transparency = 1
+		end
+	end
+end)
+
+-- Clean up model container
+model:Destroy()
+print("✨ Welds complete. Base parts looped to stay transparent.")
+
+   end,
+})
+
+
+
+
+local Button = ItemsTab:CreateButton({
+   Name = "JX1DX1 Apple and Crown",
+   Callback = function()
+   -- LocalScript - client-sided
+local MODEL_ID = "rbxassetid://79845760427075"
 
 local ATTACHMENT_MODES = {
 	["Slasher"] = { charParts = {"Chainsaw", "Machete"}, modelParts = {"One", "Two"} },
